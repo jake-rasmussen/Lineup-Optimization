@@ -1,0 +1,326 @@
+//Batter D fully functional
+function fillFeasibilityTableForD() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ws = ss.getSheetByName("0 outs");  // adjust if the sheet name differs
+
+  // 1) Row range for "before" states (batter D)
+  const firstRow = 56;
+  const lastRow  = 59;
+
+  // 2) Columns for "beforeBases" (B=2) and "beforeOuts" (C=3)
+  const basesCol = 2;
+  const outsCol  = 3;
+
+  // 3) "EOI" column is D=4
+  const eoiCol = 4;
+
+  // 4) The columns for "after" states: E..CF (E=5..CF=84)
+  const firstAfterCol = 5;   // E
+  const lastAfterCol  = 84;  // CF
+
+  // 5) We'll assume the "after" states are stored in row 1
+  //    If they're elsewhere, adjust afterRowForLabels.
+  const afterRowForLabels = 1;
+
+
+
+  // Loop over each row that has "before" data
+  for (let row = firstRow; row <= lastRow; row++) {
+    // A) Read the "before" bases/outs
+    const beforeBases = ws.getRange(row, basesCol).getValue();
+    const beforeOuts  = Number(ws.getRange(row, outsCol).getValue());
+    const beforeBatter = "D"; // Hard-coded for batter D
+
+  
+    // B) Determine EOI (end-of-inning) possibility
+    const occupantCount = (beforeBases.match(/[A-Z]/g) || []).length;
+    const outsNeeded = 3 - beforeOuts;
+    let eoiPossible = false;
+    if (outsNeeded > 0 && (occupantCount + 1) >= outsNeeded) {
+      eoiPossible = true;
+    }
+    // Write EOI result in column D
+    ws.getRange(row, eoiCol).setValue(eoiPossible ? 1 : 0);
+ 
+
+    // C) Now loop columns E..CF for "after" states
+    for (let col = firstAfterCol; col <= lastAfterCol; col++) {
+      // 1) Read the “afterLabel” from row=1
+      const afterLabel = ws.getRange(afterRowForLabels, col).getValue();
+     
+
+      // If blank => write "x" to show we touched it
+      if (!afterLabel) {
+        ws.getRange(row, col).setValue("x");
+       
+        continue;
+      }
+
+      // 2) Parse e.g. "A00/1"
+      const [newBases, newOutsStr] = afterLabel.split("/");
+      if (!newBases || !newOutsStr) {
+        ws.getRange(row, col).setValue("x");
+       
+        continue;
+      }
+      const newOuts = Number(newOutsStr);
+
+  
+
+      // 3) Check feasibility (assuming you have isTransitionPossible in your project)
+      const possible = isTransitionPossible(beforeBatter, beforeBases, beforeOuts, newBases, newOuts);
+
+      // 4) Write result (1 or 0)
+      if (possible) {
+        ws.getRange(row, col).setValue(1);
+       
+      } else {
+        ws.getRange(row, col).setValue(0);
+       
+      }
+    }
+  }
+
+ 
+}
+
+/**
+ * Decide if going from:
+ *   (beforeBatter, beforeBases, beforeOuts)
+ * to:
+ *   (afterBases, afterOuts)
+ * is possible in exactly one plate appearance.
+ *
+ * Incorporates two new rules:
+ *   1) A runner cannot move "backwards" (e.g. from 2B to 1B).
+ *   2) The state cannot remain exactly the same if there's any runner on base.
+ * 
+ * We still allow +0 or +1 outs per plate appearance (no double plays).
+ */
+/**
+ * Decide if going from:
+ *   (beforeBatter, beforeBases, beforeOuts)
+ * to:
+ *   (afterBases, afterOuts)
+ * is possible in exactly one plate appearance,
+ * *with* the possibility of a double play (+2 outs) if logically valid.
+ *
+ * Rules:
+ *  - outDelta ∈ {0,1,2}, disallow >2 or negative.
+ *  - if outDelta=2 (double play), require at least one occupant on base
+ *    OR else it's impossible (you can't get 2 outs if there's only the batter and bases empty).
+ *  - No new occupant on base unless occupant == batter.
+ *  - No backward runner movement.
+ *  - Can't remain identical if there's a runner on base.
+ *  - Still disallow 3+ outs mid-inning (that might be EOI).
+ */
+/**
+ * Decide if going from:
+ *    (beforeBatter, beforeBases, beforeOuts)
+ * to:
+ *    (afterBases, afterOuts)
+ * is possible in exactly one plate appearance,
+ * allowing up to a double play (+2 outs), 
+ * no backward running, no unchanged state if a runner is on base,
+ * and the two new rules about runner advancement & empty-base fielder's choice.
+ */
+/**
+ * Decide if going from:
+ *    (beforeBatter, beforeBases, beforeOuts)
+ * to:
+ *    (afterBases, afterOuts)
+ * is possible in exactly one plate appearance.
+ *
+ * Incorporates:
+ *  - up to +2 outs (double plays), no triple plays
+ *  - no backward running
+ *  - no same-state if there's a runner
+ *  - no fielder's choice from empty bases
+ *  - no forward movement unless outDelta>0 or new occupant joined
+ *  - if the total occupants on base increases, outDelta must be 0
+ */
+/**
+ * Decide if going from:
+ *    (beforeBatter, beforeBases, beforeOuts)
+ * to:
+ *    (afterBases, afterOuts)
+ * is possible in exactly one plate appearance,
+ * incorporating double-play logic that requires the total baserunners 
+ * to decrease by exactly 1 when outDelta=2.
+ */
+function isTransitionPossible(beforeBatter, beforeBases, beforeOuts, afterBases, afterOuts) {
+  // 1) Calculate outDelta
+  if (afterOuts < beforeOuts) return false;
+  const outDelta = afterOuts - beforeOuts;
+  // Now we allow up to +3 outs (triple play).
+  if (outDelta < 0 || outDelta > 3) return false;
+
+  // If afterOuts > 3, that's impossible mid-inning.
+  if (afterOuts > 3) return false; 
+
+  // 2) Batter cannot already be on base
+  if (beforeBases.indexOf(beforeBatter) !== -1) {
+    return false;
+  }
+
+  // 3) Parse base strings => arrays => sets
+  const beforeArr = parseBaseString(beforeBases);
+  const afterArr  = parseBaseString(afterBases);
+  const beforeSet = new Set(beforeArr.filter(p => p !== "0"));
+  const afterSet  = new Set(afterArr.filter(p => p !== "0"));
+
+  // 4) No same state if there's a runner on base
+  const sameState = (beforeBases === afterBases && beforeOuts === afterOuts);
+  if (sameState && beforeSet.size > 0) {
+    return false;
+  }
+
+  // 5) Double play or triple play checks:
+  //    - If outDelta=2, occupant count must drop by 1.
+  //    - If outDelta=3, occupant count must drop by 2 (and presumably beforeOuts=0 => afterOuts=3).
+
+  const beforeCount = beforeSet.size;
+  const afterCount  = afterSet.size;
+
+  if (outDelta === 2) {
+    // at least 1 occupant to get a double play
+    if (beforeCount < 1) return false;
+    // occupant count must drop by 1
+    if (afterCount !== beforeCount - 1) return false;
+  } else if (outDelta === 3) {
+    // For triple play, typically beforeOuts=0 => afterOuts=3
+    if (beforeOuts !== 0 || afterOuts !== 3) return false;
+    // Need at least 2 occupants + 1 batter => total 3 possible outs
+    if (beforeCount < 2) return false;
+    // occupant count must drop by 2 (the 2 baserunners + the batter are out)
+    if (afterCount !== beforeCount - 2) return false;
+  }
+
+  // 6) No brand-new occupant unless occupant == batter
+  for (let occupant of afterSet) {
+    if (!beforeSet.has(occupant) && occupant !== beforeBatter) {
+      return false;
+    }
+  }
+
+  // 7) No backward running
+  const beforeMap = occupantIndexMap(beforeArr);
+  const afterMap  = occupantIndexMap(afterArr);
+  for (let occupant in beforeMap) {
+    if (afterMap.hasOwnProperty(occupant)) {
+      if (afterMap[occupant] < beforeMap[occupant]) {
+        return false;
+      }
+    }
+  }
+
+  // 8) A runner cannot advance unless (outDelta>0) OR a new occupant joined (batterJoined).
+  const batterJoined = (!beforeSet.has(beforeBatter) && afterSet.has(beforeBatter));
+  for (let occupant in beforeMap) {
+    if (afterMap.hasOwnProperty(occupant)) {
+      const oldPos = beforeMap[occupant];
+      const newPos = afterMap[occupant];
+      if (newPos > oldPos) {
+        // occupant advanced forward
+        if (!batterJoined && outDelta === 0) {
+          return false;
+        }
+      }
+    }
+  }
+
+  // 9) No fielder's choice from empty bases
+  //    => if outDelta=1 AND the batter is on base => must have had occupant
+  if (outDelta === 1 && afterSet.has(beforeBatter)) {
+    if (beforeCount === 0) return false;
+  }
+
+  // 10) If occupant count increased, outDelta must be 0
+  if (afterCount > beforeCount && outDelta > 0) {
+    return false;
+  }
+
+   const occupantsBefore = Object.keys(beforeMap); // e.g. ["B","A"] if B=0, A=2
+  
+  for (let i = 0; i < occupantsBefore.length; i++) {
+    for (let j = i + 1; j < occupantsBefore.length; j++) {
+      // occupant iName and jName
+      const iName = occupantsBefore[i];
+      const jName = occupantsBefore[j];
+
+      // base indexes in 'before' state
+      const iPos = beforeMap[iName];
+      const jPos = beforeMap[jName];
+
+      // We only care if one was behind the other:
+      // We'll handle both directions in case i < j or j < i.
+      if (iPos < jPos) {
+        // occupant iName behind occupant jName
+        // Check if jName is still present but iName vanished
+        const jInAfter = (jName in afterMap);
+        const iInAfter = (iName in afterMap);
+
+        if (jInAfter && !iInAfter) {
+          // occupant iName disappeared, occupant jName remained
+          // => require outDelta >= 2
+          if (outDelta < 2) {
+            return false;
+          }
+        }
+
+      } else if (jPos < iPos) {
+        // occupant jName behind occupant iName
+        // If occupant iName remains but jName disappeared => outDelta >= 2
+        const iInAfter = (iName in afterMap);
+        const jInAfter = (jName in afterMap);
+
+        if (iInAfter && !jInAfter) {
+          if (outDelta < 2) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+
+  // If we pass this loop, we haven't violated the behind-runner rule
+
+  return true; // if everything else was also satisfied
+}
+
+// Helper functions
+
+function parseBaseString(str) {
+  if (!str || str.length !== 3) {
+    return ["0","0","0"];
+  }
+  return [ str[0], str[1], str[2] ];
+}
+
+function occupantIndexMap(baseArr) {
+  const map = {};
+  for (let i = 0; i < baseArr.length; i++) {
+    const occupant = baseArr[i];
+    if (occupant !== "0") {
+      map[occupant] = i; // i=0->1B, i=1->2B, i=2->3B
+    }
+  }
+  return map;
+}
+
+function canEndInning(beforeBases, beforeOuts, beforeBatter) {
+  // 1) How many outs needed to get to 3
+  const outsNeeded = 3 - beforeOuts;
+  if (outsNeeded <= 0) {
+    // Already at or above 3 outs => that’s an end-of-inning scenario 
+    // or invalid if your mid-inning states only go up to 2.
+    return false; 
+  }
+
+  // 2) How many “people” can be put out in one play?
+  //    = (# baserunners) + 1 (the batter)
+  // parse base string
+  // But we actually only have the base string + batter in the calling code
+  // For simplicity, do it there.
+}
+
