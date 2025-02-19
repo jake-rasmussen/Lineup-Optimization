@@ -30,7 +30,9 @@ const AuthModal = () => {
     if (error) {
       console.error(error);
     }
+
     onOpenChange();
+    router.push("/build");
   }
 
   async function signUp() {
@@ -38,13 +40,15 @@ const AuthModal = () => {
     if (error) {
       console.error(error);
     }
+
     onOpenChange();
+    router.push("/build");
   }
 
   return (
     <>
       <Button color="primary" onPress={onOpen}>
-        Open Modal
+        Log in
       </Button>
 
       <Modal isOpen={isOpen} placement="top-center" onOpenChange={onOpenChange}>

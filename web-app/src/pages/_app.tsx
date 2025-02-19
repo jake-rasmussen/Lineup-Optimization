@@ -6,6 +6,8 @@ import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { HeroUIProvider } from "@heroui/react";
 import { Poppins } from "@next/font/google";
+import { createClient } from "utils/supabase/server-props";
+import { GetServerSidePropsContext } from "next";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -29,3 +31,4 @@ const MyApp: AppType = ({ Component, pageProps }) => {
 };
 
 export default api.withTRPC(MyApp);
+
