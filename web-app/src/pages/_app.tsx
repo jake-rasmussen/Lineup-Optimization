@@ -1,4 +1,3 @@
-import { GeistSans } from "geist/font/sans";
 import { type AppType } from "next/app";
 
 import { api } from "~/utils/api";
@@ -6,8 +5,7 @@ import { api } from "~/utils/api";
 import "~/styles/globals.css";
 import { HeroUIProvider } from "@heroui/react";
 import { Poppins } from "@next/font/google";
-import { createClient } from "utils/supabase/server-props";
-import { GetServerSidePropsContext } from "next";
+import { Toaster } from "react-hot-toast";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -24,6 +22,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
           --font-poppins: ${poppins.style.fontFamily};
         }
       `}</style>
+        <Toaster />
         <Component {...pageProps} />
       </div>
     </HeroUIProvider>

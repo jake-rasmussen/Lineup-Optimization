@@ -5,38 +5,36 @@ import {
   ModalFooter,
   ModalHeader,
 } from "@heroui/modal";
-import { Button, Select, SelectItem, useDisclosure } from "@heroui/react";
+import { Button, Select, SelectItem } from "@heroui/react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { mockPlayers } from "~/data/players";
 import type { Selection, SharedSelection } from "@heroui/react";
+import toast from "react-hot-toast";
 
 type PropType = {
-  handleSubmit: (lineup: Record<number, string>) => void;
+  handleSubmit: (lineup: Record<number, string | undefined>, unassignedPlayers: string[]) => void;
 }
 
 const BuildModal = (props: PropType) => {
   const { handleSubmit } = props;
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [step, setStep] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
   const [selectedPlayers, setSelectedPlayers] = useState<Selection>(new Set());
-  const [lineup, setLineup] = useState<Record<number, string>>({});
+  const [lineup, setLineup] = useState<Record<number, string | undefined>>(
+    Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, undefined]))
+  );
 
   const lineupSpots = Array.from({ length: 9 }, (_, i) => i + 1);
 
   const nextStep = () => {
     const players = new Set(selectedPlayers);
     if (step === 0 && players.size > 9) {
-      setError("You cannot select more than 9 players.");
       return;
     } else if (step === 0 && players.size === 0) {
-      setError(null);
       setStep((prev) => prev + 2);
     } else {
-      setError(null);
       setStep((prev) => prev + 1);
     }
 
@@ -46,9 +44,9 @@ const BuildModal = (props: PropType) => {
 
   const handleSelectPlayers = (keys: SharedSelection) => {
     if (keys instanceof Set && keys.size > 9) {
-      setError("You cannot select more than 9 players.");
+      toast.dismiss();
+      toast.error("You cannot select more than 9 players.");
     } else {
-      setError(null);
       setSelectedPlayers(keys);
     }
   };
@@ -67,9 +65,9 @@ const BuildModal = (props: PropType) => {
   };
 
   const assignedPlayers = new Set(Object.values(lineup));
-  const unassignedPlayers = Array.from(selectedPlayers).filter(
+  const unassignedPlayers: string[] = Array.from(selectedPlayers).filter(
     (playerId) => !assignedPlayers.has(playerId as string)
-  );
+  ) as string[];
 
   const variants = {
     enter: { opacity: 0, x: 100 },
@@ -79,15 +77,7 @@ const BuildModal = (props: PropType) => {
 
   return (
     <>
-      <Button onPress={() => {
-        setStep(0);
-        onOpen();
-        setSelectedPlayers(new Set());
-        setLineup({});
-      }} color="primary">
-        Build Lineup
-      </Button>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
+      <Modal isOpen={true} size="2xl" className="h-[70vh]" backdrop="blur" hideCloseButton>
         <ModalContent>
           {(onClose) => (
             <>
@@ -122,9 +112,8 @@ const BuildModal = (props: PropType) => {
                   className="w-full"
                 >
                   {step === 0 && (
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-4">
                       <Select
-                        className="max-w-md"
                         label="Select Players"
                         placeholder="Select up to 9 players"
                         selectionMode="multiple"
@@ -135,7 +124,22 @@ const BuildModal = (props: PropType) => {
                           <SelectItem key={player.id}>{player.name}</SelectItem>
                         ))}
                       </Select>
-                      {error && <p className="text-red-500 text-sm">{error}</p>}
+
+                      {
+                        Array.from(selectedPlayers).length > 0 && (
+                          <>
+                            <h3 className="text-lg font-semibold">Selected</h3>
+                            <ul className="bg-gray-100 p-4 rounded-md flex flex-col gap-2">
+                              {Array.from(selectedPlayers).map((playerId) => {
+                                const player = mockPlayers.find((p) => p.id === playerId);
+                                return player ? (
+                                  <div className="flex flex-row gap-1 items-center" key={playerId}><strong className="text-xs">⚾️</strong>{player.name}</div>
+                                ) : null;
+                              })}
+                            </ul>
+                          </>
+                        )
+                      }
                     </div>
                   )}
 
@@ -188,8 +192,8 @@ const BuildModal = (props: PropType) => {
                 </motion.div>
               </ModalBody>
               <ModalFooter>
-                <Button color="danger" variant="light" onPress={step === 0 ? onClose : prevStep}>
-                  {step === 0 ? "Close" : "Back"}
+                <Button color="danger" variant="light" onPress={step === 0 ? onClose : prevStep} isDisabled={step === 0}>
+                  Back
                 </Button>
                 {step < 2 && (
                   <Button color="primary" onPress={nextStep}>
@@ -198,8 +202,7 @@ const BuildModal = (props: PropType) => {
                 )}
                 {step === 2 && (
                   <Button onPress={() => {
-                    handleSubmit(lineup);
-                    onOpenChange();
+                    handleSubmit(lineup, unassignedPlayers);
                   }} color="primary">
                     Submit
                   </Button>
