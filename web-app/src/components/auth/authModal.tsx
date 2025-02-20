@@ -12,6 +12,7 @@ import {
 } from "@heroui/react";
 import { useRouter } from "next/router"
 import { Key, useState } from "react"
+import toast from "react-hot-toast";
 import { createClient } from "utils/supabase/component";
 
 const AuthModal = () => {
@@ -24,27 +25,52 @@ const AuthModal = () => {
   const [password, setPassword] = useState("");
 
   const [selected, setSelected] = useState<Key>("signin");
+  const [loading, setLoading] = useState(false);
 
   async function logIn() {
+    toast.dismiss();
+    toast.loading("Signing in...");
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       console.error(error);
+
+      toast.dismiss();
+      toast.error("Error...");
+    } else {
+      toast.dismiss();
+
+      onOpenChange();
+      router.push("/build");
     }
-    onOpenChange();
+
+    setLoading(false);
   }
 
   async function signUp() {
+    toast.dismiss();
+    toast.loading("Signing up...");
+
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
       console.error(error);
+
+      toast.dismiss();
+      toast.error("Error...");
+    } else {
+      toast.dismiss();
+
+      onOpenChange();
+      router.push("/build");
     }
-    onOpenChange();
+
+    setLoading(false);
   }
 
   return (
     <>
       <Button color="primary" onPress={onOpen}>
-        Open Modal
+        Log in
       </Button>
 
       <Modal isOpen={isOpen} placement="top-center" onOpenChange={onOpenChange}>
@@ -81,11 +107,11 @@ const AuthModal = () => {
                 </Button>
                 {
                   selected === "signin" ? (
-                    <Button color="primary" onPress={logIn}>
+                    <Button color="primary" onPress={logIn} isDisabled={loading}>
                       Sign in
                     </Button>
                   ) : (
-                    <Button color="primary" onPress={signUp}>
+                    <Button color="primary" onPress={signUp} isDisabled={loading}>
                       Sign up
                     </Button>
                   )
