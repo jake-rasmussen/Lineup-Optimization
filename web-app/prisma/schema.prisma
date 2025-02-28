@@ -10,6 +10,19 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum Position {
+    PITCHER
+    CATCHER
+    FIRST_BASE
+    SECOND_BASE
+    THIRD_BASE
+    LEFT_FIELD
+    CENTER_FIELD
+    RIGHT_FIELD
+    SHORTSTOP
+    DESIGNATED_HITTER
+}
+
 model Post {
     id        Int      @id @default(autoincrement())
     name      String
@@ -17,4 +30,31 @@ model Post {
     updatedAt DateTime @updatedAt
 
     @@index([name])
+}
+
+model Player {
+    id        String   @id @default(cuid())
+    firstName String
+    lastName  String
+    position  Position
+    seasons   Season[]
+
+    @@unique([firstName, lastName])
+}
+
+model Season {
+    id               String  @id @default(cuid())
+    year             Int
+    plateAppearances Int
+    runs             Int
+    hits             Int
+    singles          Int
+    doubles          Int
+    triples          Int
+    homeruns         Int
+    walks            Int
+    hitByPitch       Int
+    intentionalWalks Int
+    player           Player? @relation(fields: [playerId], references: [id])
+    playerId         String?
 }
