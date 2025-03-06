@@ -29,7 +29,6 @@ export const playerRouter = createTRPCRouter({
         },
       });
     }),
-
   fetchAndStorePlayers: publicProcedure
     .input(z.object({ teamId: z.string(), seasonYear: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -55,7 +54,7 @@ export const playerRouter = createTRPCRouter({
               id: playerData.id,
               firstName: playerData.first_name,
               lastName: playerData.last_name,
-              position: playerData.primary_position.toUpperCase(),
+              position: playerData.primary_position.toUpperCase() as Position,
             },
           });
 
@@ -78,5 +77,16 @@ export const playerRouter = createTRPCRouter({
         }
       }
       return { message: "Players and seasons stored successfully." };
+    }),
+  getAllPlayers: publicProcedure.query(async ({ ctx }) => {
+    return ctx.db.player.findMany();
+  }),
+  getSeasonsByPlayerId: publicProcedure
+    .input(z.object({ playerId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.season.findMany({
+        where: { playerId: input.playerId },
+        orderBy: { year: 'desc' },
+      });
     }),
 });

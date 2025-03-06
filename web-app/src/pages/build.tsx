@@ -1,16 +1,35 @@
 import { Button, Progress, Tooltip } from "@heroui/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import BuildModal from "~/components/build/buildModal";
+import BuildController from "~/components/build/buildController";
 import type { GetServerSidePropsContext } from "next";
 import { createClient } from "utils/supabase/server-props";
+import { api } from "~/utils/api";
+import toast from "react-hot-toast";
 
+type DisplayLineupPlayer = {
+  id: string;
+  name: string;
+  isSelected: boolean;
+  isUnassigned: boolean;
+};
 
 export default function Build() {
   const [loading, setLoading] = useState(false);
-  const [lineup, setLineup] = useState<Record<number, { name: string; isSelected: boolean, isUnassigned: boolean }>>();
+  const [lineup, setLineup] = useState<Record<number, DisplayLineupPlayer>>();
 
   const router = useRouter();
+
+  const saveLineup = api.lineup.saveLineup.useMutation({
+    onSuccess() {
+      toast.dismiss();
+      toast.success("Saved lineup!");
+    },
+    onError() {
+      toast.dismiss();
+      toast.error("Error...")
+    }
+  });
 
   const handleSubmit = async (lineup: Record<number, string | undefined>, unassignedPlayers: string[]) => {
     setLoading(true);
@@ -39,6 +58,24 @@ export default function Build() {
     }
   };
 
+  const convertDisplayLineupToRaw = (
+    displayLineup: Record<number, DisplayLineupPlayer>
+  ): Record<string, string> => {
+    return Object.fromEntries(
+      Object.entries(displayLineup).map(([spot, player]) => [spot, player.id])
+    );
+  };
+
+  const handleSave = async () => {
+    if (!lineup) return;
+
+    toast.dismiss();
+    toast.loading("Saving lineup...");
+
+    const selectedLineupForSaving = convertDisplayLineupToRaw(lineup);
+    saveLineup.mutate({ selectedLineup: selectedLineupForSaving });
+  };
+
   const renderPlayerDesignation = (player: { name: string; isSelected: boolean; isUnassigned: boolean }) => {
     if (player.isSelected) return (
       <div className="flex flex-row">{player.name} <Tooltip content="Player assigned to lineup position" placement="right">🔒</Tooltip></div>
@@ -59,10 +96,10 @@ export default function Build() {
               <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
             </div>
           ) : (
-            <div className="flex flex-col gap-12 px-4 py-16 items-center">
+            <>
               {
                 lineup ? (
-                  <>
+                  <div className="flex flex-col gap-12 items-center w-full h-full">
                     <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
 
                     {lineup ? (
@@ -77,17 +114,22 @@ export default function Build() {
                       <p className="text-gray-500 mt-4">No lineup found.</p>
                     )}
 
-                    <Button className="mt-6" onPress={() => router.reload()}>
-                      Back
-                    </Button>
-                  </>
+                    <div className="flex gap-6">
+                      <Button onPress={() => router.reload()}>
+                        Back
+                      </Button>
+                      <Button onPress={handleSave} color="primary">
+                        Save
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <>
-                    <BuildModal handleSubmit={handleSubmit} />
-                  </>
+                  <div className="flex w-full min-h-screen justify-center items-center">
+                    <BuildController handleSubmit={handleSubmit} />
+                  </div>
                 )
               }
-            </div>
+            </>
           )}
       </main>
     </>

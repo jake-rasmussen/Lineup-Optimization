@@ -23,7 +23,7 @@ export default function Home() {
     }
 
     fetchUser().then(() => setLoading(false));
-  }, [supabase]); // Runs once when the component mounts
+  }, [supabase]);
 
   return (
     <>
