@@ -14,10 +14,20 @@ import { useRouter } from "next/router"
 import { Key, useState } from "react"
 import toast from "react-hot-toast";
 import { createClient } from "utils/supabase/component";
+import { api } from "~/utils/api";
 
 const AuthModal = () => {
   const router = useRouter();
   const supabase = createClient();
+
+  const upsertUser = api.user.upsertUser.useMutation({
+    onSuccess() {
+
+    },
+    onError() {
+
+    }
+  })
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -44,6 +54,8 @@ const AuthModal = () => {
       router.push("/build");
     }
 
+    await upsertUser.mutateAsync({ email });
+
     setLoading(false);
   }
 
@@ -63,6 +75,8 @@ const AuthModal = () => {
       onOpenChange();
       router.push("/build");
     }
+    
+    await upsertUser.mutateAsync({ email });
 
     setLoading(false);
   }

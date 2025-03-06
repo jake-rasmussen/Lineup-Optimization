@@ -32,12 +32,18 @@ model Post {
     @@index([name])
 }
 
+model User {
+    email  String   @id @unique
+    lineup Lineup[]
+}
+
 model Player {
-    id        String   @id @default(cuid())
-    firstName String
-    lastName  String
-    position  Position
-    seasons   Season[]
+    id           String         @id @default(cuid())
+    firstName    String
+    lastName     String
+    position     Position
+    seasons      Season[]
+    lineupPlayer LineupPlayer[]
 
     @@unique([firstName, lastName])
 }
@@ -57,4 +63,23 @@ model Season {
     intentionalWalks Int
     player           Player? @relation(fields: [playerId], references: [id])
     playerId         String?
+}
+
+model Lineup {
+    id        String         @id @default(cuid())
+    user      User           @relation(fields: [userEmail], references: [email])
+    players   LineupPlayer[]
+    userEmail String
+}
+
+model LineupPlayer {
+    lineupId    String
+    playerId    String
+    battingSpot Int
+    position    Position
+
+    lineup Lineup @relation(fields: [lineupId], references: [id])
+    player Player @relation(fields: [playerId], references: [id])
+
+    @@id([lineupId, playerId])
 }

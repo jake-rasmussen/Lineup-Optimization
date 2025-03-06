@@ -6,6 +6,7 @@ import "~/styles/globals.css";
 import { HeroUIProvider } from "@heroui/react";
 import { Poppins } from "@next/font/google";
 import { Toaster } from "react-hot-toast";
+import NavDrawer from "~/components/navDrawer";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -23,6 +24,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         }
       `}</style>
         <Toaster />
+        <NavDrawer />
         <Component {...pageProps} />
       </div>
     </HeroUIProvider>
