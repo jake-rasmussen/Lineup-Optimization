@@ -1,17 +1,13 @@
 import { Progress } from "@heroui/react";
-import { useRouter } from "next/router";
 import type { GetServerSidePropsContext } from "next";
 import { createClient } from "utils/supabase/server-props";
 import { api } from "~/utils/api";
 import SavedLineupCard, { SavedLineup } from "~/components/saved/lineupCard";
 
 export default function Saved() {
-  const router = useRouter();
-
   const {
     data: savedLineups,
     isLoading,
-    error,
   } = api.lineup.getSavedLineups.useQuery();
 
   return (

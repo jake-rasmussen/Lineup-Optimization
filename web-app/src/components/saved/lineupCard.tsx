@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody, CardFooter, Button, Tooltip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/react";
+import { Card, CardHeader, CardBody, CardFooter, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/react";
 import { useState } from "react";
 import PlayerCard, { PlayerData } from "./playerCard";
 
@@ -18,11 +18,11 @@ export type SavedLineup = {
   players: SavedLineupPlayer[];
 };
 
-type SavedLineupCardProps = {
+type PropType = {
   lineup: SavedLineup;
 };
 
-const SavedLineupCard = ({ lineup }: SavedLineupCardProps) => {
+const SavedLineupCard = ({ lineup }: PropType) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [selectedPlayer, setSelectedPlayer] = useState<null | SavedLineupPlayer>(null);
