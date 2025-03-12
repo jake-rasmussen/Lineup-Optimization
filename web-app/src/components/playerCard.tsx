@@ -1,30 +1,10 @@
-import { Card, CardHeader, CardBody, CardFooter, Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import { Player, Season } from "@prisma/client";
 import { api } from "~/utils/api";
 
-export type SeasonData = {
-  id: string;
-  year: number;
-  plateAppearances: number;
-  runs: number;
-  hits: number;
-  singles: number;
-  doubles: number;
-  triples: number;
-  homeruns: number;
-  walks: number;
-  hitByPitch: number;
-  intentionalWalks: number;
-};
-
-export type PlayerData = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  position: string;
-};
 
 type PlayerCardProps = {
-  player: PlayerData;
+  player: Player;
   onClose: () => void;
 };
 
@@ -47,7 +27,7 @@ const PlayerCard = ({ player }: PlayerCardProps) => {
             <TableColumn>HR</TableColumn>
           </TableHeader>
           <TableBody>
-            {seasons.map((season: SeasonData) => (
+            {seasons.map((season: Season) => (
               <TableRow>
                 <TableCell>{season.year}</TableCell>
                 <TableCell>{season.plateAppearances}</TableCell>

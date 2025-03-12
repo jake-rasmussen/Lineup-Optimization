@@ -3,32 +3,6 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const playerRouter = createTRPCRouter({
-  createPlayer: publicProcedure
-    .input(z.object({
-      firstName: z.string().min(1),
-      lastName: z.string().min(1),
-      position: z.nativeEnum(Position),
-    }))
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.player.upsert({
-        where: {
-          firstName_lastName: {
-            firstName: input.firstName,
-            lastName: input.lastName,
-          },
-        },
-        update: {
-          firstName: input.firstName,
-          lastName: input.lastName,
-          position: input.position,
-        },
-        create: {
-          firstName: input.firstName,
-          lastName: input.lastName,
-          position: input.position,
-        },
-      });
-    }),
   fetchAndStorePlayers: publicProcedure
     .input(z.object({ teamId: z.string(), seasonYear: z.number() }))
     .mutation(async ({ ctx, input }) => {
@@ -45,8 +19,9 @@ export const playerRouter = createTRPCRouter({
       for (const split of teamSplits.splits) {
         const playerData = split.player;
         const hittingStats = split.hitting?.overall?.[0]?.total;
+        const position = playerData.primary_position.toUpperCase() as Position;
 
-        if (hittingStats) {
+        if (hittingStats && position != Position.PITCHER) {
           const player = await ctx.db.player.upsert({
             where: { id: playerData.id },
             update: {},
@@ -54,7 +29,7 @@ export const playerRouter = createTRPCRouter({
               id: playerData.id,
               firstName: playerData.first_name,
               lastName: playerData.last_name,
-              position: playerData.primary_position.toUpperCase() as Position,
+              position,
             },
           });
 
@@ -72,15 +47,48 @@ export const playerRouter = createTRPCRouter({
               hitByPitch: hittingStats.hbp,
               intentionalWalks: hittingStats.ibb,
               player: { connect: { id: player.id } },
+              teamId,
             },
           });
         }
       }
       return { message: "Players and seasons stored successfully." };
     }),
-  getAllPlayers: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db.player.findMany();
-  }),
+  getPlayersByFilter: publicProcedure
+    .input(
+      z.object({
+        teamId: z.string().optional(),
+        seasonYear: z.number().optional(),
+        search: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return ctx.db.player.findMany({
+        include: {
+          seasons: true,
+        },
+        where: {
+          AND: [
+            input.search
+              ? {
+                OR: [
+                  { firstName: { contains: input.search, mode: "insensitive" } },
+                  { lastName: { contains: input.search, mode: "insensitive" } },
+                ],
+              }
+              : {},
+            {
+              seasons: {
+                some: {
+                  ...(input.teamId ? { teamId: input.teamId } : {}),
+                  ...(input.seasonYear ? { year: input.seasonYear } : {}),
+                },
+              },
+            },
+          ],
+        },
+      });
+    }),
   getSeasonsByPlayerId: publicProcedure
     .input(z.object({ playerId: z.string() }))
     .query(async ({ ctx, input }) => {

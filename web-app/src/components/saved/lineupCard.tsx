@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardBody, CardFooter, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@heroui/react";
 import { useState } from "react";
-import PlayerCard, { PlayerData } from "./playerCard";
+import PlayerCard from "../playerCard";
+import { Player, Position } from "@prisma/client";
 
 export type SavedLineupPlayer = {
   battingSpot: number;
@@ -29,16 +30,16 @@ const SavedLineupCard = ({ lineup }: PropType) => {
 
   const sortedPlayers = [...lineup.players].sort((a, b) => a.battingSpot - b.battingSpot);
 
-  const toPlayerData = (lp: SavedLineupPlayer): PlayerData => ({
+  const toPlayerData = (lp: SavedLineupPlayer): Player => ({
     id: lp.player.id,
     firstName: lp.player.firstName,
     lastName: lp.player.lastName,
-    position: lp.position,
+    position: lp.position as Position,
   });
 
   return (
     <>
-      <Card className="w-full max-w-md my-4 shadow-xl shadow-blue-200">
+      <Card className="w-full max-w-md my-4 shadow-xl shadow-blue-200 border">
         <CardHeader>
         </CardHeader>
         <CardBody>

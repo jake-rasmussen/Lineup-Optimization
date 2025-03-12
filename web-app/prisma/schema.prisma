@@ -44,8 +44,6 @@ model Player {
     position     Position
     seasons      Season[]
     lineupPlayer LineupPlayer[]
-
-    @@unique([firstName, lastName])
 }
 
 model Season {
@@ -63,6 +61,7 @@ model Season {
     intentionalWalks Int
     player           Player? @relation(fields: [playerId], references: [id])
     playerId         String?
+    teamId           String
 }
 
 model Lineup {

@@ -24,17 +24,21 @@ export default function Saved() {
             />
           </div>
         ) : (
-          <div className="flex flex-col gap-12 px-4 py-16 items-center w-full">
-            {savedLineups && savedLineups.length > 0 ? (
-              savedLineups.map((lineup: SavedLineup) => (
-                <SavedLineupCard
-                  key={lineup.id}
-                  lineup={lineup}
-                />
-              ))
-            ) : (
-              <p>No saved lineups found.</p>
-            )}
+          <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center">
+            <h1 className="text-4xl font-bold text-center">Saved Lineups</h1>
+
+            <div className="flex flex-col gap-12 px-4 items-center w-full">
+              {savedLineups && savedLineups.length > 0 ? (
+                savedLineups.map((lineup: SavedLineup) => (
+                  <SavedLineupCard
+                    key={lineup.id}
+                    lineup={lineup}
+                  />
+                ))
+              ) : (
+                <p>No saved lineups found.</p>
+              )}
+            </div>
           </div>
         )}
       </main>
