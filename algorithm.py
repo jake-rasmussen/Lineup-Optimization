@@ -369,7 +369,7 @@ def setup_excel(file_path):
     excel = win32.Dispatch('Excel.Application')
     excel.Visible = False  # Run Excel in the background
     workbook = excel.Workbooks.Open(file_path)
-    sheet = workbook.Sheets("4 tuple values 0 outs")
+    sheet = workbook.Sheets("4 Tuple Values 0 Outs")
     return excel, workbook, sheet
 
 def get_bdnrp_from_excel(sheet, p1, p2, p3, p4):
