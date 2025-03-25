@@ -99,7 +99,7 @@ export default function Build() {
             <>
               {
                 lineup ? (
-                  <div className="flex flex-col gap-12 items-center w-full h-full">
+                  <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center">
                     <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
 
                     {lineup ? (

@@ -40,12 +40,12 @@ export const lineupRouter = createTRPCRouter({
         if (!player) {
           throw new Error(`Player with id ${playerId} not found`);
         }
-        await ctx.db.lineupPlayer.create({
+        
+        await ctx.db.lineupEntry.create({
           data: {
             lineupId: lineup.id,
             playerId,
             battingSpot: parseInt(spotStr),
-            position: player.position,
           },
         });
       }
@@ -63,7 +63,7 @@ export const lineupRouter = createTRPCRouter({
       return ctx.db.lineup.findMany({
         where: { userEmail },
         include: {
-          players: {
+          entries: {
             include: {
               player: true // this will include the nested Player data
             }
