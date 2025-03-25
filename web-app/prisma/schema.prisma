@@ -38,12 +38,12 @@ model User {
 }
 
 model Player {
-    id           String         @id @default(cuid())
-    firstName    String
-    lastName     String
-    position     Position
-    seasons      Season[]
-    lineupPlayer LineupPlayer[]
+    id          String        @id @default(cuid())
+    firstName   String
+    lastName    String
+    position    Position
+    seasons     Season[]
+    lineupEntry LineupEntry[]
 }
 
 model Season {
@@ -65,20 +65,18 @@ model Season {
 }
 
 model Lineup {
-    id        String         @id @default(cuid())
-    user      User           @relation(fields: [userEmail], references: [email])
-    players   LineupPlayer[]
+    id        String        @id @default(cuid())
+    user      User          @relation(fields: [userEmail], references: [email])
+    entries   LineupEntry[]
     userEmail String
 }
 
-model LineupPlayer {
+model LineupEntry {
     lineupId    String
     playerId    String
     battingSpot Int
-    position    Position
-
-    lineup Lineup @relation(fields: [lineupId], references: [id])
-    player Player @relation(fields: [playerId], references: [id])
+    player      Player @relation(fields: [playerId], references: [id])
+    lineup      Lineup @relation(fields: [lineupId], references: [id])
 
     @@id([lineupId, playerId])
 }

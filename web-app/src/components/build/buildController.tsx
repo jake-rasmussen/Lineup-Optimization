@@ -35,7 +35,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
     .filter((id) => !assignedPlayers.has(id));
 
   return (
-    <Card className="h-[70vh] w-full max-w-4xl shadow-blue-200 shadow-xl border">
+    <Card className="h-[75vh] w-full max-w-5xl shadow-blue-200 shadow-xl border">
       {step === 0 && (
         <CardHeader>
           <div>
@@ -90,7 +90,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           />
         )}
       </CardBody>
-      <CardFooter>
+      <CardFooter className="flex flex-row gap-2">
         <Button color="danger" variant="light" onPress={step === 0 ? undefined : prevStep} isDisabled={step === 0}>
           Back
         </Button>

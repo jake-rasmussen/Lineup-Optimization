@@ -2,7 +2,7 @@ import { Progress } from "@heroui/react";
 import type { GetServerSidePropsContext } from "next";
 import { createClient } from "utils/supabase/server-props";
 import { api } from "~/utils/api";
-import SavedLineupCard, { SavedLineup } from "~/components/saved/lineupCard";
+import SavedLineupCard from "~/components/saved/savedLineupCard";
 
 export default function Saved() {
   const {
@@ -29,7 +29,7 @@ export default function Saved() {
 
             <div className="flex flex-col gap-12 px-4 items-center w-full">
               {savedLineups && savedLineups.length > 0 ? (
-                savedLineups.map((lineup: SavedLineup) => (
+                savedLineups.map((lineup) => (
                   <SavedLineupCard
                     key={lineup.id}
                     lineup={lineup}

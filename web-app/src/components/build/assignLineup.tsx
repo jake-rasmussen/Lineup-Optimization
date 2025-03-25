@@ -14,7 +14,6 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayers }: PropType) => {
   const handleLineupChange = (spot: number, playerId: string) => {
     setLineup((prev) => {
       const newLineup = { ...prev };
-      // Remove any previous assignment of this player
       Object.keys(newLineup).forEach((key) => {
         if (newLineup[Number(key)] === playerId) {
           delete newLineup[Number(key)];
@@ -32,7 +31,7 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayers }: PropType) => {
           <Select
             key={spot}
             label={`Batting Spot ${spot}`}
-            placeholder="Assign player"
+            // placeholder="Assign player"
             selectionMode="single"
             selectedKeys={lineup[spot] ? new Set([lineup[spot]]) : new Set()}
             onSelectionChange={(selected) =>
@@ -43,6 +42,7 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayers }: PropType) => {
               const player = selectedPlayers.find((p) => p.id === selectedKey?.key);
               return player ? `${player.firstName} ${player.lastName}` : "";
             }}
+            size="sm"
           >
             {selectedPlayers.map((player) => (
               <SelectItem key={player.id} value={player.id}>
