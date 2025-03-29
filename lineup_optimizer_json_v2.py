@@ -389,15 +389,9 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
     print("\nStep 3: Running lineup optimization...")
     best_lineup, best_score = optimizer.optimize(method=method)
     
-    # Step 6: Calculate the expected run production using weighted score
+    # Step 6: Calculate the unweighted expected run production
     lineup_stats = optimizer.get_lineup_stats()
-    weighted_score = best_score
-    
-    # Calculate the per-inning run value by dividing weighted score by the sum of weights
-    # The sum of weights is approximately 13.5 for 9 positions with varying weights
-    # (Sum of weights: 1.89 + 1.78 + 1.67 + 1.56 + 1.44 + 1.33 + 1.22 + 1.11 + 1.0 = 13.0)
-    weights_sum = sum([1.0 + ((8-i)/9 if i < 8 else 0) for i in range(9)])
-    per_inning_runs = weighted_score / weights_sum
+    base_score = lineup_stats['base_bdnrp'].sum()
     
     # Step 7: Format the result as a JSON object
     result = {}
@@ -408,12 +402,11 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
         result[str(position)] = player
     
     # Add the expected runs score (multiplied by 9 innings)
-    result["expected runs"] = round(per_inning_runs * 9, 4)
+    result["expected runs"] = round(base_score * 9, 4)
     
     print("\n===== OPTIMIZATION RESULTS =====")
     print(f"Best lineup: {best_lineup}")
-    print(f"Weighted score: {weighted_score:.4f}")
-    print(f"Expected run production per inning: {per_inning_runs:.4f}")
-    print(f"Expected run production per game: {per_inning_runs * 9:.4f}")
+    print(f"Expected run production per inning: {base_score:.4f}")
+    print(f"Expected run production per game: {base_score * 9:.4f}")
     
     return result
