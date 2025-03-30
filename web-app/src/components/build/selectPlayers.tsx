@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import mlbTeamMap from "~/data/teams";
 import { api } from "~/utils/api";
 import type { Player } from "@prisma/client";
-import PlayerTable from "../playerTable";
+import PlayerTable from "../playerTableEdit";
 
 type PropType = {
   selectedPlayers: Player[];

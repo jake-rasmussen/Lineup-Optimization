@@ -13,7 +13,7 @@ const PlayerCardModal = ({ player }: PropType) => {
     <>
       <Button onPress={onOpen} size="sm">View Player</Button>
     
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center">
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center" size="3xl">
         <ModalContent>
           {(onClose) => (
             <>

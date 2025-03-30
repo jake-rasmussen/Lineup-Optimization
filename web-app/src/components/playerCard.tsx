@@ -1,4 +1,4 @@
-import { Card, CardBody, Divider, Spinner, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
+import { Card, CardBody, Divider, Spinner } from "@heroui/react";
 import { Player, Position, Season } from "@prisma/client";
 import { api } from "~/utils/api";
 import { formatPosition, getTeamName } from "~/utils/helper";

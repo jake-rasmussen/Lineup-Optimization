@@ -1,38 +1,25 @@
-import { Button, Progress, Tooltip } from "@heroui/react";
-import { useRouter } from "next/router";
+import { Progress } from "@heroui/react";
 import { useState } from "react";
 import BuildController from "~/components/build/buildController";
 import type { GetServerSidePropsContext } from "next";
 import { createClient } from "utils/supabase/server-props";
-import { api } from "~/utils/api";
-import toast from "react-hot-toast";
+import { Player } from "@prisma/client";
+import HomeRunAnimation from "~/components/homeRunAnimation";
+import FinalLineup from "~/components/build/finalLineup";
 
-type DisplayLineupPlayer = {
-  id: string;
-  name: string;
+export type DisplayLineupPlayer = {
+  player: Player
   isSelected: boolean;
   isUnassigned: boolean;
 };
 
 export default function Build() {
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [lineup, setLineup] = useState<Record<number, DisplayLineupPlayer>>();
-
-  const router = useRouter();
-
-  const saveLineup = api.lineup.saveLineup.useMutation({
-    onSuccess() {
-      toast.dismiss();
-      toast.success("Saved lineup!");
-    },
-    onError() {
-      toast.dismiss();
-      toast.error("Error...")
-    }
-  });
+  const [expectedRuns, setExpectedRuns] = useState<number>();
 
   const handleSubmit = async (lineup: Record<number, string | undefined>, unassignedPlayers: string[]) => {
-    setLoading(true);
+    setIsLoading(true);
 
     const selectedLineup = Object.fromEntries(
       Object.entries(lineup).map(([spot, player]) => [spot, player ?? null])
@@ -48,80 +35,36 @@ export default function Build() {
       if (response.ok) {
         const data = await response.json();
         setLineup(data.lineup);
+        setExpectedRuns(data.expectedRuns);
       } else {
         console.error("Failed to submit lineup");
       }
     } catch (error) {
       console.error("Error submitting lineup:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  };
-
-  const convertDisplayLineupToRaw = (
-    displayLineup: Record<number, DisplayLineupPlayer>
-  ): Record<string, string> => {
-    return Object.fromEntries(
-      Object.entries(displayLineup).map(([spot, player]) => [spot, player.id])
-    );
-  };
-
-  const handleSave = async () => {
-    if (!lineup) return;
-
-    toast.dismiss();
-    toast.loading("Saving lineup...");
-
-    const selectedLineupForSaving = convertDisplayLineupToRaw(lineup);
-    saveLineup.mutate({ selectedLineup: selectedLineupForSaving });
-  };
-
-  const renderPlayerDesignation = (player: { name: string; isSelected: boolean; isUnassigned: boolean }) => {
-    if (player.isSelected) return (
-      <div className="flex flex-row">{player.name} <Tooltip content="Player assigned to lineup position" placement="right">🔒</Tooltip></div>
-    );
-    if (player.isUnassigned) return (
-      <div className="flex flex-row">{player.name} <Tooltip content="Player unassigned to lineup position" placement="right">🔓</Tooltip></div>
-    );
-    return <p className="text-red-500">{player.name}</p>;
   };
 
   return (
     <>
       <main className="flex min-h-screen flex-col items-center">
         {
-          loading ? (
-            <div className="flex flex-col gap-4 min-h-screen w-full items-center justify-center">
-              <h2 className="text-xl">Creating lineup...</h2>
-              <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
+          isLoading ? (
+            <div className="flex flex-col gap-20 min-h-screen w-full items-center justify-center">
+              <HomeRunAnimation />
+              <div className="flex flex-col gap-4 w-full items-center">
+                <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
+                <h2 className="text-xl">Creating lineup...</h2>
+              </div>
             </div>
           ) : (
             <>
               {
                 lineup ? (
-                  <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center">
+                  <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center w-full">
                     <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
-
-                    {lineup ? (
-                      <ul className="bg-gray-100 p-4 rounded-md mt-4">
-                        {Object.entries(lineup).map(([spot, player]) => (
-                          <li key={spot} className="text-lg flex flex-row gap-1">
-                            <strong>Batting Spot {spot}:</strong> {renderPlayerDesignation(player)}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-gray-500 mt-4">No lineup found.</p>
-                    )}
-
-                    <div className="flex gap-6">
-                      <Button onPress={() => router.reload()}>
-                        Back
-                      </Button>
-                      <Button onPress={handleSave} color="primary">
-                        Save
-                      </Button>
-                    </div>
+                    <FinalLineup lineup={lineup} expectedRuns={expectedRuns} />
                   </div>
                 ) : (
                   <div className="flex w-full min-h-screen justify-center items-center">

@@ -133,10 +133,12 @@ const populateDatabase = async () => {
 
     console.log("Database reset complete. Fetching new data...");
 
-    const seasonYear = 2024;
+    const seasonYears = [2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015];
 
-    for (const teamId of mlbTeamIds) {
-      await fetchPlayersForTeam(teamId, seasonYear);
+    for (const seasonYear of seasonYears) {
+      for (const teamId of mlbTeamIds) {
+        await fetchPlayersForTeam(teamId, seasonYear);
+      }
     }
 
     console.log("Database population complete.");

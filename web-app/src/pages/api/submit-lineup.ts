@@ -5,7 +5,7 @@ import { db } from "~/server/db";
 // Extend the response type to include a position property.
 type LineupResponse = Record<
   number,
-  { id:string; name: string; isSelected: boolean; isUnassigned: boolean; position: string }
+  { player: Player; isSelected: boolean; isUnassigned: boolean; position: string }
 >;
 
 // Available positions (same as in your Prisma enum)
@@ -41,9 +41,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const players = await db.player.findMany();
 
   // Build a mapping from player ID to a computed object that includes a full name.
-  const playerMap: Record<string, { id: string; fullName: string; position: string }> = {};
+  const playerMap: Record<string, Player> = {};
   players.forEach((player: Player) => {
-    playerMap[player.id] = { id: player.id, fullName: `${player.firstName} ${player.lastName}`, position: player.position };
+    playerMap[player.id] = {
+      id: player.id,
+      firstName: player.firstName,
+      lastName: player.lastName,
+      position: player.position,
+    };
   });
 
   // Determine which players have been explicitly selected.
@@ -59,11 +64,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (playerId && playerMap[playerId]) {
       const player = playerMap[playerId];
       lineup[parseInt(spot)] = {
-        id: playerId,
-        name: player.fullName,
+        player: {
+          id: player.id,
+          firstName: player.firstName,
+          lastName: player.lastName,
+          position: player.position,
+        },
         isSelected: true,
         isUnassigned: false,
-        position: player.position
+        position: player.position,
       };
     }
   });
@@ -80,7 +89,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const randomSpotIndex = Math.floor(Math.random() * emptySpots.length);
       const randomSpot = emptySpots.splice(randomSpotIndex, 1)[0];
       const player = playerMap[playerId];
-      lineup[randomSpot!] = { id: playerId, name: player.fullName, isSelected: false, isUnassigned: true, position: getRandomPosition() };
+      lineup[randomSpot!] = {
+        player: {
+          id: player.id,
+          firstName: player.firstName,
+          lastName: player.lastName,
+          position: player.position,
+        },
+        isSelected: false,
+        isUnassigned: true,
+        position: getRandomPosition(),
+      };
     }
   });
 
@@ -93,10 +112,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   for (const spot of emptySpots) {
     if (remainingPoolIndex < remainingPlayers.length) {
       const player = remainingPlayers[remainingPoolIndex];
-      lineup[spot] = { id: player!.id, name: `${player!.firstName} ${player!.lastName}`, isSelected: false, isUnassigned: false, position: getRandomPosition() };
+      lineup[spot] = {
+        player: {
+          id: player!.id,
+          firstName: player!.firstName,
+          lastName: player!.lastName,
+          position: player!.position,
+        },
+        isSelected: false,
+        isUnassigned: false,
+        position: getRandomPosition(),
+      };
       remainingPoolIndex++;
     }
   }
 
-  return res.status(200).json({ message: "Lineup generated successfully", lineup });
+  return res.status(200).json({ message: "Lineup generated successfully", lineup, expectedRuns: 4.3 });
 }
