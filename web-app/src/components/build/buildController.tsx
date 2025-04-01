@@ -5,15 +5,19 @@ import ConfirmLineup from "./confirmLineup";
 import { Player, Season } from "@prisma/client";
 import SelectPlayers from "./selectPlayers";
 
-type PropType = {
-  handleSubmit: (lineup: Record<number, string | undefined>, unassignedPlayers: string[]) => void;
-};
-
 export type PlayerSeason = {
   compositeId: string;
   player: Player;
   season: Season;
 }
+
+type PropType = {
+  handleSubmit: (
+    lineup: Record<number, string | undefined>,
+    unassignedPlayerSeasons: PlayerSeason[],
+    selectedPlayerSeasons: PlayerSeason[]
+  ) => void;
+};
 
 const BuildController = ({ handleSubmit }: PropType) => {
   const [step, setStep] = useState(0);
@@ -34,11 +38,13 @@ const BuildController = ({ handleSubmit }: PropType) => {
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
-  
-  const assignedPlayers = new Set(Object.values(lineup));
-  const unassignedPlayers: string[] = selectedPlayerSeasons
-    .map((ps) => ps.compositeId)
-    .filter((id) => !assignedPlayers.has(id));
+
+  // Determine which composite IDs are assigned in the lineup.
+  const assignedComposite = new Set(Object.values(lineup).filter(Boolean));
+  // Get unassigned player seasons (those not in the lineup).
+  const unassignedPlayerSeasons = selectedPlayerSeasons.filter(
+    (ps) => !assignedComposite.has(ps.compositeId)
+  );
 
   return (
     <Card className="h-[75vh] w-full max-w-5xl shadow-blue-200 shadow-xl border">
@@ -92,7 +98,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <ConfirmLineup
             lineup={lineup}
             selectedPlayerSeasons={selectedPlayerSeasons}
-            unassignedPlayers={unassignedPlayers}
+            unassignedPlayers={unassignedPlayerSeasons.map(ps => ps.compositeId)}
           />
         )}
       </CardBody>
@@ -111,7 +117,12 @@ const BuildController = ({ handleSubmit }: PropType) => {
           </Button>
         )}
         {step === 2 && (
-          <Button onPress={() => handleSubmit(lineup, unassignedPlayers)} color="primary">
+          <Button
+            onPress={() =>
+              handleSubmit(lineup, unassignedPlayerSeasons, selectedPlayerSeasons)
+            }
+            color="primary"
+          >
             Submit
           </Button>
         )}

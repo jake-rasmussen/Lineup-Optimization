@@ -30,7 +30,7 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
   ): Record<string, string> => {
     return Object.fromEntries(
       Object.entries(displayLineup).map(([spot, displayLineupPlayer]) => (
-        [spot, displayLineupPlayer.player.id]
+        [spot, displayLineupPlayer.id]
       ))
     );
   };
@@ -53,7 +53,7 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
       <CardBody className="flex flex-col items-center gap-8 relative overflow-visible">
         <PlayerTable lineup={lineup || []} />
         {
-          expectedRuns && (
+          expectedRuns !== undefined && (
             <div className="absolute right-0 transform translate-x-1/2">
               <ExpectedRuns expectedRuns={expectedRuns} />
             </div>

@@ -1,5 +1,4 @@
 import { Button, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@heroui/react";
-import { Player } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 import { formatPosition } from "~/utils/helper";
 import PlayerCardModal from "./playerCardModal";
@@ -46,4 +45,4 @@ const PlayerTable = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropTy
   )
 }
 
-export default PlayerTable;
+export default PlayerTable; 
