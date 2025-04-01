@@ -63,29 +63,38 @@ export const playerRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      // Build search filter by splitting the search string into terms.
+      const searchFilter = input.search
+        ? {
+          AND: input.search
+            .split(/\s+/)
+            .filter(Boolean)
+            .map((term) => ({
+              OR: [
+                { firstName: { contains: term, mode: "insensitive" as const } },
+                { lastName: { contains: term, mode: "insensitive" as const } },
+              ],
+            })),
+        }
+        : {};
+
+      // Build the season filter using both teamId and seasonYear.
+      const seasonWhere = {
+        ...(input.teamId ? { teamId: input.teamId } : {}),
+        ...(input.seasonYear ? { year: input.seasonYear } : {}),
+      };
+
       return ctx.db.player.findMany({
-        include: {
-          seasons: true,
-        },
         where: {
-          AND: [
-            input.search
-              ? {
-                OR: [
-                  { firstName: { contains: input.search, mode: "insensitive" } },
-                  { lastName: { contains: input.search, mode: "insensitive" } },
-                ],
-              }
-              : {},
-            {
-              seasons: {
-                some: {
-                  ...(input.teamId ? { teamId: input.teamId } : {}),
-                  ...(input.seasonYear ? { year: input.seasonYear } : {}),
-                },
-              },
-            },
-          ],
+          ...searchFilter,
+          // Only include players that have at least one season matching both filters.
+          ...(input.teamId || input.seasonYear ? { seasons: { some: seasonWhere } } : {}),
+        },
+        include: {
+          // Restrict the included seasons to those that match both team and season.
+          seasons: input.teamId || input.seasonYear
+            ? { where: seasonWhere }
+            : true,
         },
       });
     }),

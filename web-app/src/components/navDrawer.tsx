@@ -40,10 +40,10 @@ const NavDrawer = () => {
 
   return (
     <>
-      <Button onPress={onOpen} className="absolute text-2xl m-4 z-50" isIconOnly>
+      <Button onPress={onOpen} className="absolute text-2xl z-50 m-4" isIconOnly>
         =
       </Button>
-      <Drawer isOpen={isOpen} onOpenChange={onOpenChange} placement="left" size="xs">
+      <Drawer isOpen={isOpen} onOpenChange={onOpenChange} placement="left" size="xs" className="p-0 m-0">
         <DrawerContent>
           {(onClose) => (
             <>

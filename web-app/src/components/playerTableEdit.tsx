@@ -3,28 +3,29 @@ import { Player } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 import { formatPosition } from "~/utils/helper";
 import PlayerCardModal from "./playerCardModal";
+import { PlayerSeason } from "./build/buildController";
 
 type PropType = {
-  selectedPlayers: Player[];
-  setSelectedPlayers: Dispatch<SetStateAction<Player[]>>;
+  selectedPlayerSeasons: PlayerSeason[];
+  setSelectedPlayerSeasons: Dispatch<SetStateAction<PlayerSeason[]>>;
 };
 
-const PlayerTable = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
+const PlayerTable = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropType) => {
   return (
-    <Table aria-label="Example static collection table">
+    <Table aria-label="Selected Players Table">
       <TableHeader>
         <TableColumn>NAME</TableColumn>
         <TableColumn>POSITION</TableColumn>
         <TableColumn>VIEW CARD</TableColumn>
         <TableColumn>REMOVE</TableColumn>
       </TableHeader>
-      <TableBody>
-        {selectedPlayers.map((player) => (
-          <TableRow key="1">
-            <TableCell>{player.firstName} {player.lastName}</TableCell>
-            <TableCell>{formatPosition(player.position)}</TableCell>
+      <TableBody emptyContent={"No players selected."}>
+        {selectedPlayerSeasons.map((playerSeason) => (
+          <TableRow key={playerSeason.compositeId} >
+            <TableCell>{playerSeason.player.firstName} {playerSeason.player.lastName}</TableCell>
+            <TableCell>{formatPosition(playerSeason.player.position)}</TableCell>
             <TableCell>
-              <PlayerCardModal player={player} />
+              <PlayerCardModal player={playerSeason.player} />
             </TableCell>
             <TableCell>
               <Button
@@ -32,8 +33,8 @@ const PlayerTable = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
                 endContent={<>❌</>}
                 variant="light"
                 onPress={() =>
-                  setSelectedPlayers((prev) =>
-                    prev.filter((p) => p.id !== player.id)
+                  setSelectedPlayerSeasons((prev) =>
+                    prev.filter((p) => p.player.id !== playerSeason.player.id)
                   )
                 }
               />

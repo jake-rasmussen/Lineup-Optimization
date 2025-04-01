@@ -42,7 +42,7 @@ class LineupOptimizer:
                     raise ValueError(f"Position {position} is assigned to multiple players: {used_positions[position]} and {player}")
                 used_positions[position] = player
     
-    def _create_bdnrp_lookup(self):
+    def _create_bdnarp_lookup(self):
         """Create an efficient lookup structure for BDNRP values."""
         lookup = {}
         for _, row in self.bdnrp_data.iterrows():

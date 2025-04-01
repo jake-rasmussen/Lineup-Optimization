@@ -1,26 +1,32 @@
 import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { useState } from "react";
-import SelectPlayers from "./selectPlayers";
-import { Player } from "@prisma/client";
 import AssignLineup from "./assignLineup";
 import ConfirmLineup from "./confirmLineup";
+import { Player, Season } from "@prisma/client";
+import SelectPlayers from "./selectPlayers";
 
 type PropType = {
   handleSubmit: (lineup: Record<number, string | undefined>, unassignedPlayers: string[]) => void;
 };
 
+export type PlayerSeason = {
+  compositeId: string;
+  player: Player;
+  season: Season;
+}
+
 const BuildController = ({ handleSubmit }: PropType) => {
   const [step, setStep] = useState(0);
-  const [selectedPlayers, setSelectedPlayers] = useState<Player[]>([]);
-
+  const [selectedPlayerSeasons, setSelectedPlayerSeasons] = useState<PlayerSeason[]>([]);
+  
   const [lineup, setLineup] = useState<Record<number, string | undefined>>(
     Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, undefined]))
   );
 
   const nextStep = () => {
-    if (step === 0 && selectedPlayers.length > 9) {
+    if (step === 0 && selectedPlayerSeasons.length > 9) {
       return;
-    } else if (step === 0 && selectedPlayers.length === 0) {
+    } else if (step === 0 && selectedPlayerSeasons.length === 0) {
       setStep((prev) => prev + 2);
     } else {
       setStep((prev) => prev + 1);
@@ -28,10 +34,10 @@ const BuildController = ({ handleSubmit }: PropType) => {
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
-
+  
   const assignedPlayers = new Set(Object.values(lineup));
-  const unassignedPlayers: string[] = selectedPlayers
-    .map((player) => player.id)
+  const unassignedPlayers: string[] = selectedPlayerSeasons
+    .map((ps) => ps.compositeId)
     .filter((id) => !assignedPlayers.has(id));
 
   return (
@@ -69,8 +75,8 @@ const BuildController = ({ handleSubmit }: PropType) => {
       <CardBody className="max-h-[70vh] overflow-y-scroll">
         {step === 0 && (
           <SelectPlayers
-            selectedPlayers={selectedPlayers}
-            setSelectedPlayers={setSelectedPlayers}
+            selectedPlayerSeasons={selectedPlayerSeasons}
+            setSelectedPlayerSeasons={setSelectedPlayerSeasons}
           />
         )}
 
@@ -78,23 +84,32 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <AssignLineup
             lineup={lineup}
             setLineup={setLineup}
-            selectedPlayers={selectedPlayers}
+            selectedPlayerSeasons={selectedPlayerSeasons}
           />
         )}
 
         {step === 2 && (
           <ConfirmLineup
             lineup={lineup}
-            selectedPlayers={selectedPlayers}
+            selectedPlayerSeasons={selectedPlayerSeasons}
             unassignedPlayers={unassignedPlayers}
           />
         )}
       </CardBody>
       <CardFooter className="flex flex-row gap-2">
-        <Button color="danger" variant="light" onPress={step === 0 ? undefined : prevStep} isDisabled={step === 0}>
+        <Button
+          color="danger"
+          variant="light"
+          onPress={step === 0 ? undefined : prevStep}
+          isDisabled={step === 0}
+        >
           Back
         </Button>
-        {step < 2 && <Button color="primary" onPress={nextStep}>Next</Button>}
+        {step < 2 && (
+          <Button color="primary" onPress={nextStep}>
+            Next
+          </Button>
+        )}
         {step === 2 && (
           <Button onPress={() => handleSubmit(lineup, unassignedPlayers)} color="primary">
             Submit

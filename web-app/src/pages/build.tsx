@@ -47,35 +47,32 @@ export default function Build() {
   };
 
   return (
-    <>
-      <main className="flex min-h-screen flex-col items-center">
-        {
-          isLoading ? (
-            <div className="flex flex-col gap-20 min-h-screen w-full items-center justify-center">
-              <HomeRunAnimation />
-              <div className="flex flex-col gap-4 w-full items-center">
-                <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
-                <h2 className="text-xl">Creating lineup...</h2>
-              </div>
+    <main className="flex min-h-screen flex-col items-center w-full">
+      {
+        isLoading ? (
+          <div className="flex flex-col gap-20 min-h-screen w-full items-center justify-center">
+            <HomeRunAnimation />
+            <div className="flex flex-col gap-4 w-full items-center">
+              <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
+              <h2 className="text-xl">Creating lineup...</h2>
             </div>
-          ) : (
-            <>
-              {
-                lineup ? (
-                  <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center w-full">
-                    <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
-                    <FinalLineup lineup={lineup} expectedRuns={expectedRuns} />
-                  </div>
-                ) : (
-                  <div className="flex w-full min-h-screen justify-center items-center">
-                    <BuildController handleSubmit={handleSubmit} />
-                  </div>
-                )
-              }
-            </>
-          )}
-      </main>
-    </>
+          </div>
+        ) : (
+          <>
+            {
+              lineup ? (
+                <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center w-full">
+                  <FinalLineup lineup={lineup} expectedRuns={expectedRuns} />
+                </div>
+              ) : (
+                <div className="flex w-full min-h-screen justify-center items-center">
+                  <BuildController handleSubmit={handleSubmit} />
+                </div>
+              )
+            }
+          </>
+        )}
+    </main>
   );
 }
 

@@ -4,15 +4,20 @@ import type { Selection } from "@heroui/react";
 import toast from "react-hot-toast";
 import mlbTeamMap from "~/data/teams";
 import { api } from "~/utils/api";
-import type { Player } from "@prisma/client";
+import type { Player, Season } from "@prisma/client";
 import PlayerTable from "../playerTableEdit";
+import { PlayerSeason } from "./buildController";
+import { getTeamName } from "~/utils/helper";
+import TeamLogo from "../teamLogo";
 
 type PropType = {
-  selectedPlayers: Player[];
-  setSelectedPlayers: Dispatch<SetStateAction<Player[]>>;
+  selectedPlayerSeasons: PlayerSeason[];
+  setSelectedPlayerSeasons: Dispatch<SetStateAction<PlayerSeason[]>>;
 };
 
-const SelectPlayers = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
+const seasonYears = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015"]
+
+const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropType) => {
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
   const [search, setSearch] = useState<string>("");
@@ -29,38 +34,41 @@ const SelectPlayers = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
     }
   );
 
-  const selectedKeys = new Set(selectedPlayers.map((player) => player.id));
+  const playerSeasons = fetchedPlayers
+    ? fetchedPlayers.flatMap((player: Player & { seasons: Season[] }) =>
+      player.seasons.map((season) => ({
+        compositeId: `${player.id}-${season.id}`,
+        player,
+        season,
+      }))
+    )
+    : [];
 
-  const handleSelectPlayers = (keys: Selection) => {
+  const selectedKeys = new Set(selectedPlayerSeasons.map((ps) => ps.compositeId));
+
+  const handleSelectPlayerSeasons = (keys: Selection) => {
     if (keys instanceof Set) {
       if (keys.size > 9) {
         toast.dismiss();
-        toast.error("You cannot select more than 9 players.");
+        toast.error("You cannot select more than 9 player seasons.");
         return;
       }
       const selectedIds = Array.from(keys);
-      const playerMap = new Map<string, Player>();
+      const psMap = new Map<string, PlayerSeason>();
 
-      selectedPlayers.forEach((player) => {
-        if (selectedIds.includes(player.id)) {
-          playerMap.set(player.id, player);
+      selectedPlayerSeasons.forEach((ps) => {
+        if (selectedIds.includes(ps.compositeId)) {
+          psMap.set(ps.compositeId, ps);
         }
       });
 
-      if (fetchedPlayers) {
-        fetchedPlayers.forEach((player: Player) => {
-          if (selectedIds.includes(player.id) && !playerMap.has(player.id)) {
-            playerMap.set(player.id, {
-              id: player.id,
-              firstName: player.firstName,
-              lastName: player.lastName,
-              position: player.position,
-            });
-          }
-        });
-      }
+      playerSeasons.forEach((ps) => {
+        if (selectedIds.includes(ps.compositeId) && !psMap.has(ps.compositeId)) {
+          psMap.set(ps.compositeId, ps);
+        }
+      });
 
-      setSelectedPlayers(Array.from(playerMap.values()));
+      setSelectedPlayerSeasons(Array.from(psMap.values()));
     }
   };
 
@@ -75,7 +83,7 @@ const SelectPlayers = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
           className="max-w-40"
           renderValue={() => selectedYear ?? "Choose a year"}
         >
-          {["2024"].map((year) => (
+          {seasonYears.map((year) => (
             <SelectItem key={year} value={year}>
               {year}
             </SelectItem>
@@ -95,7 +103,9 @@ const SelectPlayers = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
         >
           {Array.from(mlbTeamMap.entries()).map(([id, name]) => (
             <SelectItem key={id} value={id}>
-              {name}
+              <div className="flex flex-row items-center gap-2">
+                <TeamLogo teamId={id} className="w-10 h-10 object-fit" />  <div>{name}</div>
+              </div>
             </SelectItem>
           ))}
         </Select>
@@ -109,17 +119,17 @@ const SelectPlayers = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
       </div>
 
       <Select
-        label="Select Players"
-        placeholder="Click to load players"
+        label="Select Player Seasons"
+        placeholder="Click to load player seasons"
         selectionMode="multiple"
         selectedKeys={selectedKeys}
         onFocus={() => setDropdownOpened(true)}
-        onSelectionChange={handleSelectPlayers}
+        onSelectionChange={handleSelectPlayerSeasons}
         renderValue={() =>
           Array.from(selectedKeys)
-            .map((id) => {
-              const player = selectedPlayers.find((p) => p.id === id);
-              return player ? `${player.firstName} ${player.lastName}` : "";
+            .map((compositeId) => {
+              const ps = selectedPlayerSeasons.find((item) => item.compositeId === compositeId);
+              return ps ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}` : "";
             })
             .join(", ")
         }
@@ -127,27 +137,25 @@ const SelectPlayers = ({ selectedPlayers, setSelectedPlayers }: PropType) => {
         isDisabled={selectedTeam === null && selectedYear === null && search.length === 0}
       >
         {isLoading ? (
-          <SelectItem key="loading" value="loading" className="w-full text-gray-400">
-            Loading players...
+          <SelectItem key="loading" value="loading" className="w-full text-gray-400" isReadOnly>
+            Loading player seasons...
           </SelectItem>
         ) : (
-          (fetchedPlayers || []).map((player: Player) => (
-            <SelectItem key={player.id} value={player.id}>
-              {player.firstName} {player.lastName}
+          playerSeasons.map((ps) => (
+            <SelectItem key={ps.compositeId} value={ps.compositeId}>
+              {ps.player.firstName} {ps.player.lastName} - {getTeamName(ps.season.teamId)} {ps.season.year}
             </SelectItem>
           ))
         )}
       </Select>
 
-      {selectedPlayers.length > 0 && (
-        <>
-          <Divider />
-          <PlayerTable
-            selectedPlayers={selectedPlayers}
-            setSelectedPlayers={setSelectedPlayers}
-          />
-        </>
-      )}
+      <>
+        <Divider />
+        <PlayerTable
+          selectedPlayerSeasons={selectedPlayerSeasons}
+          setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+        />
+      </>
     </div>
   );
 };

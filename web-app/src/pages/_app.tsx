@@ -17,7 +17,7 @@ const poppins = Poppins({
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <HeroUIProvider>
-      <div className={`${poppins.variable} font-sans`}>
+      <div className={`${poppins.variable} font-sans flex w-full`}>
         <style jsx global>{`
         :root {
           --font-poppins: ${poppins.style.fontFamily};

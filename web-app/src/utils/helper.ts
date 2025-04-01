@@ -1,3 +1,5 @@
+import React from "react";
+
 export function formatPosition(position: string): string {
   return position
     .toLowerCase()

@@ -4,6 +4,7 @@ import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
 import { api } from "~/utils/api";
+import ExpectedRuns from "./expectedRuns";
 
 type PropType = {
   lineup: Record<number, DisplayLineupPlayer>,
@@ -45,15 +46,17 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
   };
 
   return (
-    <Card className="w-1/2">
-      <CardBody className="flex flex-col items-center gap-8">
+    <Card className="w-1/2 overflow-visible">
+      <CardHeader>
+        <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
+      </CardHeader>
+      <CardBody className="flex flex-col items-center gap-8 relative overflow-visible">
         <PlayerTable lineup={lineup || []} />
         {
           expectedRuns && (
-            <span className="flex flex-row gap-2 text-2xl uppercase font-black">
-              <h3>Expected runs: </h3>
-              <p className="text-red-500 font-black underline">{expectedRuns}</p>
-            </span>
+            <div className="absolute right-0 transform translate-x-1/2">
+              <ExpectedRuns expectedRuns={expectedRuns} />
+            </div>
           )
         }
       </CardBody>

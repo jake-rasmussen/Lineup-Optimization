@@ -1,13 +1,14 @@
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
-import { Player } from "@prisma/client";
+import { PlayerSeason } from "./buildController";
+import { getTeamName } from "~/utils/helper";
 
 type PropType = {
   lineup: Record<number, string | undefined>;
-  selectedPlayers: Player[];
+  selectedPlayerSeasons: PlayerSeason[];
   unassignedPlayers: string[];
 };
 
-const ConfirmLineup = ({ lineup, selectedPlayers, unassignedPlayers }: PropType) => {
+const ConfirmLineup = ({ lineup, selectedPlayerSeasons, unassignedPlayers }: PropType) => {
   const lineupSpots = Array.from({ length: 9 }, (_, i) => i + 1);
 
   return (
@@ -21,11 +22,16 @@ const ConfirmLineup = ({ lineup, selectedPlayers, unassignedPlayers }: PropType)
           </TableHeader>
           <TableBody>
             {lineupSpots.map((spot) => {
-              const player = selectedPlayers.find((p) => p.id === lineup[spot]);
+              const compositeId = lineup[spot];
+              const ps = selectedPlayerSeasons.find((item) => item.compositeId === compositeId);
               return (
                 <TableRow key={spot}>
                   <TableCell className="text-center">{spot}</TableCell>
-                  <TableCell>{player ? `${player.firstName} ${player.lastName}` : "-"}</TableCell>
+                  <TableCell>
+                    {ps
+                      ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}`
+                      : "-"}
+                  </TableCell>
                 </TableRow>
               );
             })}
@@ -40,11 +46,15 @@ const ConfirmLineup = ({ lineup, selectedPlayers, unassignedPlayers }: PropType)
               <TableColumn>Player Name</TableColumn>
             </TableHeader>
             <TableBody>
-              {unassignedPlayers.map((playerId) => {
-                const player = selectedPlayers.find((p) => p.id === playerId);
+              {unassignedPlayers.map((compositeId) => {
+                const ps = selectedPlayerSeasons.find((item) => item.compositeId === compositeId);
                 return (
-                  <TableRow key={playerId}>
-                    <TableCell>{player ? `${player.firstName} ${player.lastName}` : "Unknown Player"}</TableCell>
+                  <TableRow key={compositeId}>
+                    <TableCell>
+                      {ps
+                        ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}`
+                        : "Unknown Player"}
+                    </TableCell>
                   </TableRow>
                 );
               })}
