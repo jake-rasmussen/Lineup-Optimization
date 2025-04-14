@@ -1,4 +1,4 @@
-def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', max_iterations=1000):
+def parse_and_optimize_lineup(json_input, excel_file_path, handedness_constraint = None, method='exhaustive', max_iterations=1000):
     """
     Parse JSON input containing player data and constraints, optimize the lineup,
     and return the result as a JSON object.
@@ -27,6 +27,7 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
     players = []
     player_stats = {}
     constraints = {}
+    player_handedness = {} # dictionary to store player batting hand (R/L/S)
     
     # Fixed positions (1-9)
     for pos in range(1, 10):
@@ -37,6 +38,7 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
             players.append(player_name)
             player_stats[player_name] = player_data["data"]
             constraints[player_name] = pos
+            player_handedness[player_name] = player_data.get("batting_hand", "R")  # Default to right-handed if not specified
     
     # Flexible positions (10-18)
     for pos in range(10, 19):
@@ -47,6 +49,8 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
             players.append(player_name)
             player_stats[player_name] = player_data["data"]
             constraints[player_name] = pos  # Value will be 10+ indicating no constraint
+            player_handedness[player_name] = player_data.get("batting_hand", "R")  # Default to right-handed if not specified
+
     
     # Ensure we have exactly 9 players
     if len(players) != 9:
@@ -187,11 +191,13 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
     
     # Step 4: Use the LineupOptimizer to find the optimal lineup
     class LineupOptimizer:
-        def __init__(self, bdnrp_data, players, constraints=None):
+        def __init__(self, bdnrp_data, players, constraints=None, player_handedness=None, handedness_constraint=None):
             """Initialize the lineup optimizer with BDNRP data and player list."""
             self.bdnrp_data = bdnrp_data
             self.players = players
             self.constraints = constraints if constraints else {player: 10 for player in players}
+            self.player_handedness = player_handedness if player_handedness else {player: "R" for player in players}
+            self.handedness_constraint = handedness_constraint
             self.best_lineup = None
             self.best_score = float('-inf')
             self.evaluated_lineups = 0
@@ -224,9 +230,81 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
             key = (p1, p2, p3, p4)
             return self.bdnrp_lookup.get(key, 0.0)
         
+        def _check_handedness_constraint(self, lineup):
+            """Check if a lineup satisfies the handedness constraint."""
+            if not self.handedness_constraint:
+                return True  # No constraint, always satisfied
+                
+            max_consecutive_right = self.handedness_constraint.get('max_consecutive_right')
+            max_consecutive_left = self.handedness_constraint.get('max_consecutive_left')
+            
+            if not max_consecutive_right and not max_consecutive_left:
+                return True  # No specific constraints set
+            
+            # Check for consecutive right-handed batters
+            if max_consecutive_right:
+                consecutive_right = 0
+                for player in lineup:
+                    if self.player_handedness.get(player) == "R":
+                        consecutive_right += 1
+                        if consecutive_right > max_consecutive_right:
+                            return False
+                    else:
+                        consecutive_right = 0
+                
+                # Need to check for wraparound (last batter to first batter)
+                if max_consecutive_right < 9:  # Only check if constraint is less than full lineup
+                    # Count consecutive right-handed batters across the end/start boundary
+                    boundary_consecutive = 0
+                    # Start from the end of the lineup and go backward
+                    for i in range(len(lineup) - 1, -1, -1):
+                        if self.player_handedness.get(lineup[i]) == "R":
+                            boundary_consecutive += 1
+                        else:
+                            break
+                    
+                    # Continue from the start of the lineup
+                    for i in range(len(lineup)):
+                        if self.player_handedness.get(lineup[i]) == "R":
+                            boundary_consecutive += 1
+                            if boundary_consecutive > max_consecutive_right:
+                                return False
+                        else:
+                            break
+            
+            # Check for consecutive left-handed batters (same logic as above)
+            if max_consecutive_left:
+                consecutive_left = 0
+                for player in lineup:
+                    if self.player_handedness.get(player) == "L":
+                        consecutive_left += 1
+                        if consecutive_left > max_consecutive_left:
+                            return False
+                    else:
+                        consecutive_left = 0
+                
+                # Check for wraparound
+                if max_consecutive_left < 9:
+                    boundary_consecutive = 0
+                    for i in range(len(lineup) - 1, -1, -1):
+                        if self.player_handedness.get(lineup[i]) == "L":
+                            boundary_consecutive += 1
+                        else:
+                            break
+                    
+                    for i in range(len(lineup)):
+                        if self.player_handedness.get(lineup[i]) == "L":
+                            boundary_consecutive += 1
+                            if boundary_consecutive > max_consecutive_left:
+                                return False
+                        else:
+                            break
+            
+            return True
+        
         def evaluate_lineup(self, lineup):
             """Calculate the expected run production for a given lineup."""
-            # Check if lineup satisfies all position constraints
+            # Check if lineup satisfies position constraints
             for i, player in enumerate(lineup):
                 position = i + 1  # Convert to 1-based position
                 constraint = self.constraints.get(player, 10)
@@ -234,6 +312,11 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
                     # This player has a constraint that isn't satisfied
                     return float('-inf')
             
+            # Check handedness constraint
+            if not self._check_handedness_constraint(lineup):
+                return float('-inf')
+            
+            # ... [rest of the existing evaluate_lineup method]
             total_score = 0.0
             
             # For each position in the lineup, consider it as the fourth position in a 4-tuple
@@ -384,7 +467,7 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
     bdnrp_data = generate_bdnrp_data(output_csv=bdnrp_csv)
     
     print("\nStep 2: Initializing lineup optimizer...")
-    optimizer = LineupOptimizer(bdnrp_data, players, constraints)
+    optimizer = LineupOptimizer(bdnrp_data, players, constraints, player_handedness, handedness_constraint)
     
     print("\nStep 3: Running lineup optimization...")
     best_lineup, best_score = optimizer.optimize(method=method)
