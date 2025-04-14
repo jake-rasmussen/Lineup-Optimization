@@ -1,4 +1,4 @@
-def parse_and_optimize_lineup(json_input, excel_file_path, handedness_constraint = None, method='exhaustive', max_iterations=1000):
+def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', max_iterations=1000):
     """
     Parse JSON input containing player data and constraints, optimize the lineup,
     and return the result as a JSON object.
@@ -22,6 +22,21 @@ def parse_and_optimize_lineup(json_input, excel_file_path, handedness_constraint
     import win32com.client as win32
     from itertools import permutations
     from concurrent.futures import ProcessPoolExecutor
+
+    # Extract handedness constraints directly from the JSON input
+    handedness_constraint = {}
+    if "max_consecutive_right" in json_input:
+        handedness_constraint["max_consecutive_right"] = json_input["max_consecutive_right"]
+    if "max_consecutive_left" in json_input:
+        handedness_constraint["max_consecutive_left"] = json_input["max_consecutive_left"]
+
+    # Print handedness constraints if they exist
+    if handedness_constraint:
+        print("Handedness constraints applied:")
+        if "max_consecutive_right" in handedness_constraint:
+            print(f"  - Maximum consecutive right-handed batters: {handedness_constraint['max_consecutive_right']}")
+        if "max_consecutive_left" in handedness_constraint:
+            print(f"  - Maximum consecutive left-handed batters: {handedness_constraint['max_consecutive_left']}")
     
     # Step 1: Extract player information from JSON
     players = []
@@ -50,8 +65,12 @@ def parse_and_optimize_lineup(json_input, excel_file_path, handedness_constraint
             player_stats[player_name] = player_data["data"]
             constraints[player_name] = pos  # Value will be 10+ indicating no constraint
             player_handedness[player_name] = player_data.get("batting_hand", "R")  # Default to right-handed if not specified
-
     
+    # Print player handedness information
+    print("\nPlayer batting hands:")
+    for player, hand in player_handedness.items():
+        print(f"  - {player}: {hand}")
+
     # Ensure we have exactly 9 players
     if len(players) != 9:
         raise ValueError(f"Expected 9 players, but found {len(players)}. Please ensure you provide exactly 9 unique players.")
@@ -191,13 +210,13 @@ def parse_and_optimize_lineup(json_input, excel_file_path, handedness_constraint
     
     # Step 4: Use the LineupOptimizer to find the optimal lineup
     class LineupOptimizer:
-        def __init__(self, bdnrp_data, players, constraints=None, player_handedness=None, handedness_constraint=None):
+        def __init__(self, bdnrp_data, players, constraints=None, player_handedness=None):
             """Initialize the lineup optimizer with BDNRP data and player list."""
             self.bdnrp_data = bdnrp_data
             self.players = players
             self.constraints = constraints if constraints else {player: 10 for player in players}
             self.player_handedness = player_handedness if player_handedness else {player: "R" for player in players}
-            self.handedness_constraint = handedness_constraint
+            self.handedness_constraint = handedness_constraint or {}
             self.best_lineup = None
             self.best_score = float('-inf')
             self.evaluated_lineups = 0
