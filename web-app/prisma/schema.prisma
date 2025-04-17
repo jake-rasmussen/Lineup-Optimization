@@ -23,6 +23,17 @@ enum Position {
     DESIGNATED_HITTER
 }
 
+enum BattingHand {
+    LEFT
+    RIGHT
+    SWITCH
+}
+
+enum League {
+    MLB
+    ALPB
+}
+
 model Post {
     id        Int      @id @default(autoincrement())
     name      String
@@ -38,12 +49,16 @@ model User {
 }
 
 model Player {
-    id          String        @id @default(cuid())
-    firstName   String
-    lastName    String
-    position    Position
-    seasons     Season[]
-    lineupEntry LineupEntry[]
+    id           String        @id @default(cuid())
+    firstName    String
+    lastName     String
+    position     Position
+    seasons      Season[]
+    lineupEntry  LineupEntry[]
+    battingHand  BattingHand
+    jerseyNumber Int?
+    salary       Int?
+    birthday     DateTime?
 }
 
 model Season {
@@ -62,6 +77,7 @@ model Season {
     player           Player? @relation(fields: [playerId], references: [id])
     playerId         String?
     teamId           String
+    league           League
 }
 
 model Lineup {

@@ -50,3 +50,10 @@ export type TeamSplitsResponse = {
   splits: Split[];
   [key: string]: any;
 }
+
+export type PlayerProfileResponse = {
+  bat_hand: string;
+  jersey_number?: string;
+  salary?: number;
+  birthdate?: Date;
+}

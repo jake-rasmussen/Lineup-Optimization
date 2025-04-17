@@ -84,7 +84,7 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
           renderValue={() => selectedYear ?? "Choose a year"}
         >
           {seasonYears.map((year) => (
-            <SelectItem key={year} value={year}>
+            <SelectItem key={year}>
               {year}
             </SelectItem>
           ))}
@@ -102,7 +102,7 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
           }}
         >
           {Array.from(mlbTeamMap.entries()).map(([id, name]) => (
-            <SelectItem key={id} value={id}>
+            <SelectItem key={id}>
               <div className="flex flex-row items-center gap-2">
                 <TeamLogo teamId={id} className="w-10 h-10 object-fit" />  <div>{name}</div>
               </div>
@@ -137,12 +137,12 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
         isDisabled={selectedTeam === null && selectedYear === null && search.length === 0}
       >
         {isLoading ? (
-          <SelectItem key="loading" value="loading" className="w-full text-gray-400" isReadOnly>
+          <SelectItem key="loading" className="w-full text-gray-400" isReadOnly>
             Loading player seasons...
           </SelectItem>
         ) : (
           playerSeasons.map((ps) => (
-            <SelectItem key={ps.compositeId} value={ps.compositeId}>
+            <SelectItem key={ps.compositeId}>
               {ps.player.firstName} {ps.player.lastName} - {getTeamName(ps.season.teamId)} {ps.season.year}
             </SelectItem>
           ))

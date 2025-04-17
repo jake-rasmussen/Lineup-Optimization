@@ -30,8 +30,6 @@ const BuildController = ({ handleSubmit }: PropType) => {
   const nextStep = () => {
     if (step === 0 && selectedPlayerSeasons.length > 9) {
       return;
-    } else if (step === 0 && selectedPlayerSeasons.length === 0) {
-      setStep((prev) => prev + 2);
     } else {
       setStep((prev) => prev + 1);
     }
@@ -61,9 +59,9 @@ const BuildController = ({ handleSubmit }: PropType) => {
       {step === 1 && (
         <CardHeader>
           <div>
-            <h3>Arrange Batting Order</h3>
+            <h3>Add Constraints</h3>
             <p className="text-gray-500 font-normal text-sm">
-              Place your selected players in the desired batting order.
+              Place add constraints to create your desired batting order.
             </p>
           </div>
         </CardHeader>

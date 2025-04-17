@@ -32,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 10000));
 
   // Expecting a selectedLineup (mapping spot to playerId or null) and an array of unassigned player IDs.
   const { selectedLineup, unassignedPlayers }: { selectedLineup: Record<number, string | null>, unassignedPlayers: string[] } = req.body;
@@ -48,6 +48,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       firstName: player.firstName,
       lastName: player.lastName,
       position: player.position,
+      battingHand: player.battingHand,
+      jerseyNumber: player.jerseyNumber,
+      salary: player.salary,
+      birthday: player.birthday,
     };
   });
 
@@ -69,6 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           firstName: player.firstName,
           lastName: player.lastName,
           position: player.position,
+          battingHand: player.battingHand,
+          jerseyNumber: player.jerseyNumber,
+          salary: player.salary,
+          birthday: player.birthday,
         },
         isSelected: true,
         isUnassigned: false,
@@ -95,6 +103,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           firstName: player.firstName,
           lastName: player.lastName,
           position: player.position,
+          battingHand: player.battingHand,
+          jerseyNumber: player.jerseyNumber,
+          salary: player.salary,
+          birthday: player.birthday,
         },
         isSelected: false,
         isUnassigned: true,
@@ -118,6 +130,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           firstName: player!.firstName,
           lastName: player!.lastName,
           position: player!.position,
+          battingHand: player!.battingHand,
+          jerseyNumber: player!.jerseyNumber,
+          salary: player!.salary,
+          birthday: player!.birthday,
         },
         isSelected: false,
         isUnassigned: false,

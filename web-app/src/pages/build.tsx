@@ -92,7 +92,7 @@ export default function Build() {
     console.log("Submitting payload:", payload);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/optimize-lineup", {
+      const response = await fetch("/api/submit-lineup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
