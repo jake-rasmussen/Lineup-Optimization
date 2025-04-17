@@ -30,8 +30,16 @@ Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/YOUR_GITHUB_USERNAME/Lineup-Optimization.git
 cd Lineup-Optimization
-cd web-app
 yarn
+```
+
+### Running the Web App
+
+Start the web app:
+
+```bash
+cd web-app
+yarn dev  # or npm run dev
 ```
 
 ### Running the Development Server
@@ -39,5 +47,6 @@ yarn
 Start the development server:
 
 ```bash
-yarn dev  # or npm run dev
+cd web-server
+py -m uvicorn main:app --reload
 ```

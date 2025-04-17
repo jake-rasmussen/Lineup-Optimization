@@ -6,7 +6,6 @@ import time
 import win32com.client as win32
 import os
 import random
-import json
 
 class LineupOptimizer:
     def __init__(self, bdnrp_data, players, constraints=None):
@@ -525,126 +524,28 @@ class LineupOptimizer:
         
         return df
 
-# NEW FUNCTIONS FOR JSON HANDLING
+def setup_excel(file_path):
+    """Connect to Excel and open the workbook."""
+    excel = win32.Dispatch('Excel.Application')
+    excel.Visible = False  # Run Excel in the background
+    workbook = excel.Workbooks.Open(file_path)
+    sheet = workbook.Sheets("4 tuple values 0 outs")
+    return excel, workbook, sheet
 
-def parse_json_constraints(json_input):
-    """
-    Parse the JSON input format and convert it to the constraint format needed by LineupOptimizer.
+def get_bdnrp_from_excel(sheet, p1, p2, p3, p4):
+    """Get BDNRP for a specific 4-tuple from Excel."""
+    # Set player names in the appropriate cells
+    sheet.Range("D4").Value = p1
+    sheet.Range("D11").Value = p2
+    sheet.Range("D18").Value = p3
+    sheet.Range("D27").Value = p4
     
-    Args:
-        json_input (dict): JSON object with positions 1-18 as keys and player IDs as values
-        
-    Returns:
-        tuple: (players_list, constraints_dict)
-    """
-    # Extract players from positions 1-9 (fixed) and 10-18 (flexible)
-    fixed_players = {}
-    flexible_players = []
+    # Allow time for Excel to recalculate
+    time.sleep(0.1)
     
-    # Process positions 1-9 (fixed positions)
-    for pos in range(1, 10):
-        pos_key = str(pos)
-        if pos_key in json_input and json_input[pos_key] is not None:
-            player_id = json_input[pos_key]
-            fixed_players[player_id] = pos
-    
-    # Process positions 10-18 (flexible positions)
-    for pos in range(10, 19):
-        pos_key = str(pos)
-        if pos_key in json_input and json_input[pos_key] is not None:
-            player_id = json_input[pos_key]
-            flexible_players.append(player_id)
-    
-    # Combine all players into a single list
-    all_players = list(fixed_players.keys()) + flexible_players
-    
-    # Create constraints dictionary
-    constraints = {}
-    for player in all_players:
-        if player in fixed_players:
-            constraints[player] = fixed_players[player]
-        else:
-            constraints[player] = 10  # Default to flexible
-    
-    return all_players, constraints
-
-def format_json_output(best_lineup, best_score):
-    """
-    Format the optimization result as a JSON object.
-    
-    Args:
-        best_lineup (list): The optimal lineup ordering
-        best_score (float): The expected run production score
-        
-    Returns:
-        dict: JSON-formatted result
-    """
-    result = {}
-    
-    # Add each player to their position
-    for i, player in enumerate(best_lineup):
-        position = i + 1
-        result[str(position)] = player
-    
-    # Add the expected runs score
-    result["expected runs"] = round(best_score, 4)
-    
-    return result
-
-def optimize_lineup_from_json(excel_file_path, json_input, bdnrp_csv=None, method='genetic', max_iterations=1000):
-    """
-    End-to-end function to optimize lineup based on JSON input format.
-    
-    Args:
-        excel_file_path (str): Path to the Excel file containing BDNRP calculations
-        json_input (dict): JSON object with positions 1-18 as keys and player IDs as values
-        bdnrp_csv (str, optional): Path to save/load BDNRP data
-        method (str): Optimization method - 'exhaustive', 'genetic', or 'simulated_annealing'
-        max_iterations (int): Maximum number of iterations for non-exhaustive methods
-        
-    Returns:
-        dict: JSON-formatted optimization result
-    """
-    # Parse the JSON input
-    players, constraints = parse_json_constraints(json_input)
-    
-    if len(players) != 9:
-        raise ValueError(f"Expected 9 players, but found {len(players)}. Please ensure you provide exactly 9 unique players.")
-    
-    # Generate or load BDNRP data
-    print("Step 1: Preparing BDNRP data...")
-    bdnrp_data = generate_bdnrp_data(players, excel_file_path, output_csv=bdnrp_csv)
-    
-    # Initialize the optimizer
-    print("\nStep 2: Initializing lineup optimizer...")
-    if constraints:
-        print("Position constraints applied:")
-        for player, position in constraints.items():
-            if position >= 1 and position <= 9:
-                print(f"  - {player}: fixed to position {position}")
-    
-    optimizer = LineupOptimizer(bdnrp_data, players, constraints)
-    
-    # Run the optimization
-    print("\nStep 3: Running lineup optimization...")
-    best_lineup, best_score = optimizer.optimize(method=method, max_iterations=max_iterations)
-    
-    # Format the result as JSON
-    result_json = format_json_output(best_lineup, best_score)
-    
-    # Display results
-    print("\n===== OPTIMIZATION RESULTS =====")
-    print(f"Best lineup JSON: {json.dumps(result_json, indent=2)}")
-    
-    # Get detailed stats for the best lineup
-    lineup_stats = optimizer.get_lineup_stats()
-    
-    # Save results to CSV
-    results_csv = "lineup_optimization_results.csv"
-    lineup_stats.to_csv(results_csv, index=False)
-    print(f"\nDetailed results saved to {results_csv}")
-    
-    return result_json
+    # Get the calculated BDNRP value
+    bdnrp = sheet.Range("H103").Value
+    return bdnrp
 
 def generate_bdnrp_data(players, excel_file_path, output_csv=None):
     """Generate BDNRP data for all player combinations using Excel."""
@@ -708,61 +609,81 @@ def generate_bdnrp_data(players, excel_file_path, output_csv=None):
         workbook.Close(SaveChanges=False)
         excel.Quit()
 
-def setup_excel(file_path):
-    """Connect to Excel and open the workbook."""
-    excel = win32.Dispatch('Excel.Application')
-    excel.Visible = False  # Run Excel in the background
-    workbook = excel.Workbooks.Open(file_path)
-    sheet = workbook.Sheets("4 Tuple Values 0 Outs")
-    return excel, workbook, sheet
-
-def get_bdnrp_from_excel(sheet, p1, p2, p3, p4):
-    """Get BDNRP for a specific 4-tuple from Excel."""
-    # Set player names in the appropriate cells
-    sheet.Range("D4").Value = p1
-    sheet.Range("D11").Value = p2
-    sheet.Range("D18").Value = p3
-    sheet.Range("D27").Value = p4
+def optimize_lineup(excel_file_path, players, constraints=None, bdnrp_csv=None, method='genetic', max_iterations=1000):
+    """End-to-end function to optimize lineup based on BDNRP values with optional constraints."""
+    # Generate or load BDNRP data
+    print("Step 1: Preparing BDNRP data...")
+    bdnrp_data = generate_bdnrp_data(players, excel_file_path, output_csv=bdnrp_csv)
     
-    # Allow time for Excel to recalculate
-    time.sleep(0.1)
+    # Initialize the optimizer
+    print("\nStep 2: Initializing lineup optimizer...")
+    if constraints:
+        print("Position constraints applied:")
+        for player, position in constraints.items():
+            if position >= 1 and position <= 9:
+                print(f"  - {player}: fixed to position {position}")
     
-    # Get the calculated BDNRP value
-    bdnrp = sheet.Range("H103").Value
-    return bdnrp
+    optimizer = LineupOptimizer(bdnrp_data, players, constraints)
+    
+    # Run the optimization
+    print("\nStep 3: Running lineup optimization...")
+    if method == 'exhaustive':
+        best_lineup, best_score = optimizer.optimize(method='exhaustive', batch_size=10000)
+    elif method == 'genetic':
+        best_lineup, best_score = optimizer.optimize(method='genetic', max_iterations=max_iterations)
+    elif method == 'simulated_annealing':
+        best_lineup, best_score = optimizer.optimize(method='simulated_annealing', max_iterations=max_iterations)
+    else:
+        raise ValueError(f"Unknown optimization method: {method}")
+    
+    # Display results
+    print("\n===== OPTIMIZATION RESULTS =====")
+    print(f"Best lineup: {best_lineup}")
+    
+    # Get detailed stats for the best lineup
+    lineup_stats = optimizer.get_lineup_stats()
+    
+    # Calculate the unweighted expected run production
+    base_score = lineup_stats['base_bdnrp'].sum()
+    
+    print(f"Expected run production (unweighted): {base_score:.4f}")
+    print(f"Optimization score (weighted): {best_score:.4f}")
+    
+    print("\nDetailed lineup breakdown:")
+    print(lineup_stats)
+    
+    # Save results to CSV
+    results_csv = "lineup_optimization_results.csv"
+    lineup_stats.to_csv(results_csv, index=False)
+    print(f"\nDetailed results saved to {results_csv}")
+    
+    return best_lineup, best_score, lineup_stats
 
 if __name__ == "__main__":
     # Configuration
     excel_file_path = r"C:\path\to\Lineup Optimization 1.xlsx"  # Update with your file path
     
-    # Example JSON input
-    json_input = {
-        "1": None,        # No player fixed in position 1
-        "2": "Player2",   # Player2 is fixed to bat 2nd
-        "3": None,        # No player fixed in position 3
-        "4": "Player4",   # Player4 is fixed to bat 4th
-        "5": None,        # No player fixed in position 5
-        "6": None,        # No player fixed in position 6
-        "7": None,        # No player fixed in position 7
-        "8": None,        # No player fixed in position 8
-        "9": None,        # No player fixed in position 9
-        "10": "Player1",  # These are flexible players (can go in any position)
-        "11": "Player3",
-        "12": "Player5",
-        "13": "Player6",
-        "14": "Player7",
-        "15": "Player8",
-        "16": "Player9",
-        "17": None,       # Not all positions 10-18 need to be filled
-        "18": None
+    # Your list of 9 players (update these names to match your Excel file)
+    players = ["Player1", "Player2", "Player3", "Player4", "Player5", 
+               "Player6", "Player7", "Player8", "Player9"]
+    
+    # Define constraints (values 1-9 lock a player to that position, 10+ means no constraint)
+    # Example: Lock Player2 to position 4, and Player5 to position 8
+    constraints = {
+        "Player1": 10,  # No constraint
+        "Player2": 4,   # Must bat 4th
+        "Player3": 10,  # No constraint
+        "Player4": 10,  # No constraint
+        "Player5": 8,   # Must bat 8th
+        "Player6": 10,  # No constraint
+        "Player7": 10,  # No constraint
+        "Player8": 10,  # No constraint
+        "Player9": 10   # No constraint
     }
     
     # CSV file to cache BDNRP calculations (to avoid recalculating)
     bdnrp_csv = "bdnrp_values.csv"
     
-    # Run the optimization
-    result_json = optimize_lineup_from_json(excel_file_path, json_input, bdnrp_csv, method='exhaustive', max_iterations=1000)
-    
-    # Print the final result
-    print("\nFinal optimized lineup:")
-    print(json.dumps(result_json, indent=2))
+    # Run the optimization (choose method: 'exhaustive', 'genetic', or 'simulated_annealing')
+    # Use 'genetic' or 'simulated_annealing' for faster results with 9 players
+    optimize_lineup(excel_file_path, players, constraints, bdnrp_csv, method='genetic', max_iterations=1000)
