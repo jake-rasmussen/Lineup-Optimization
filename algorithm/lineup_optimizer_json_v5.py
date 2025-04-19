@@ -795,12 +795,15 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
     lineup_stats = optimizer.get_lineup_stats(leadoff_lineup)
     base_score = lineup_stats['base_bdnrp'].sum()
 
+    # Calculate weighted score - add this line
+    weighted_score = lineup_stats['weighted_bdnrp'].sum()
+
     # Step 6: Package result
     result = {}
     for i, player in enumerate(leadoff_lineup):
         result[str(i + 1)] = player
 
-    result["expected runs"] = round(base_score * 9, 4)
+    result["expected runs"] = round(weighted_score * 9, 4) ###### CHANGED BASE_SCORE TO WEIGHTED_SCORE #######
     
     # Always include leadoff_info in a standardized way, but content differs
     # This ensures the key always exists for the main program
@@ -823,8 +826,8 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
         print(f"Leadoff-adjusted score: {leadoff_score:.4f}")
         print(f"Original cycle rank before leadoff selection: {original_rank} of {len(optimizer.top_lineups)}")
     
-    print(f"Expected run production per inning: {base_score:.4f}")
-    print(f"Expected run production per game: {base_score * 9:.4f}")
+    print(f"Expected run production per inning: {weighted_score:.4f}")
+    print(f"Expected run production per game: {weighted_score * 9:.4f}")
 
     return result
 
