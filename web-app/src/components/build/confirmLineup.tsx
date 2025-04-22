@@ -1,6 +1,7 @@
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
 import { PlayerSeason } from "./buildController";
 import { getTeamName } from "~/utils/helper";
+import { useLeague } from "~/context/league-context";
 
 type PropType = {
   lineup: Record<number, string | undefined>;
@@ -9,6 +10,8 @@ type PropType = {
 };
 
 const ConfirmLineup = ({ lineup, selectedPlayerSeasons, unassignedPlayers }: PropType) => {
+  const { league } = useLeague();
+  
   const lineupSpots = Array.from({ length: 9 }, (_, i) => i + 1);
 
   return (
@@ -29,7 +32,7 @@ const ConfirmLineup = ({ lineup, selectedPlayerSeasons, unassignedPlayers }: Pro
                   <TableCell className="text-center">{spot}</TableCell>
                   <TableCell>
                     {ps
-                      ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}`
+                      ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(league, ps.season.teamId)} ${ps.season.year}`
                       : "-"}
                   </TableCell>
                 </TableRow>
@@ -52,7 +55,7 @@ const ConfirmLineup = ({ lineup, selectedPlayerSeasons, unassignedPlayers }: Pro
                   <TableRow key={compositeId}>
                     <TableCell>
                       {ps
-                        ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}`
+                        ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(league, ps.season.teamId)} ${ps.season.year}`
                         : "Unknown Player"}
                     </TableCell>
                   </TableRow>

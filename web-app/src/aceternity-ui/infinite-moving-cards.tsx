@@ -109,7 +109,7 @@ export const InfiniteMovingCards = ({
             className="relative w-[150px] max-w-full shrink-0 rounded-2xl border border-zinc-200 bg-white px-2 py-2 dark:border-zinc-700 dark:bg-gray-900"
           >
             <img
-              src={`./team-logos/${teamName}.png`}
+              src={`./mlb-team-logos/${teamName}.png`}
               alt={`${teamName} logo`}
               className="w-full h-full object-contain"
             />

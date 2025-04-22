@@ -2,7 +2,7 @@ import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { useState } from "react";
 import AssignLineup from "./assignLineup";
 import ConfirmLineup from "./confirmLineup";
-import { Player, Season } from "@prisma/client";
+import { League, Player, Season } from "@prisma/client";
 import SelectPlayers from "./selectPlayers";
 
 export type PlayerSeason = {

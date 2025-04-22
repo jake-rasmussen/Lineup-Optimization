@@ -3,6 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import { formatPosition } from "~/utils/helper";
 import PlayerCardModal from "./playerCardModal";
 import { PlayerSeason } from "./build/buildController";
+import { League } from "@prisma/client";
 
 type PropType = {
   selectedPlayerSeasons: PlayerSeason[];
@@ -24,7 +25,7 @@ const PlayerTable = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropTy
             <TableCell>{playerSeason.player.firstName} {playerSeason.player.lastName}</TableCell>
             <TableCell>{formatPosition(playerSeason.player.position)}</TableCell>
             <TableCell>
-              <PlayerCardModal player={playerSeason.player} />
+              <PlayerCardModal player={playerSeason.player} isDisabled={playerSeason.season.league === League.CUSTOM} />
             </TableCell>
             <TableCell>
               <Button

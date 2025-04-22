@@ -2,13 +2,15 @@ import { Divider, Input, Select, SelectItem } from "@heroui/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import type { Selection } from "@heroui/react";
 import toast from "react-hot-toast";
-import mlbTeamMap from "~/data/teams";
+import { mlbTeamMap, alpbTeamMap } from "~/data/teams";
 import { api } from "~/utils/api";
-import type { Player, Season } from "@prisma/client";
+import { League, Player, Season } from "@prisma/client";
 import PlayerTable from "../playerTableEdit";
 import { PlayerSeason } from "./buildController";
 import { getTeamName } from "~/utils/helper";
 import TeamLogo from "../teamLogo";
+import CustomPlayerModal from "./customPlayerModal";
+import { useLeague } from "~/context/league-context";
 
 type PropType = {
   selectedPlayerSeasons: PlayerSeason[];
@@ -23,11 +25,14 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
   const [search, setSearch] = useState<string>("");
   const [dropdownOpened, setDropdownOpened] = useState(false);
 
+  const { league } = useLeague();
+
   const { data: fetchedPlayers, isLoading } = api.player.getPlayersByFilter.useQuery(
     {
       teamId: selectedTeam || undefined,
       seasonYear: selectedYear ? parseInt(selectedYear) : undefined,
       search: search || undefined,
+      league,
     },
     {
       enabled: dropdownOpened && (!!selectedTeam || !!selectedYear || search.length > 0),
@@ -97,17 +102,19 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
           onSelectionChange={(keys) => setSelectedTeam(Array.from(keys)[0] as string)}
           className="max-w-60"
           renderValue={() => {
-            const teamName = selectedTeam ? mlbTeamMap.get(selectedTeam) : "Choose a team";
+            const teamName = selectedTeam ? (league === League.MLB ? mlbTeamMap : alpbTeamMap).get(selectedTeam) : "Choose a team";
             return teamName;
           }}
         >
-          {Array.from(mlbTeamMap.entries()).map(([id, name]) => (
+          {Array.from((league === League.MLB ? mlbTeamMap : alpbTeamMap).entries()).map(([id, name]) => (
             <SelectItem key={id}>
               <div className="flex flex-row items-center gap-2">
-                <TeamLogo teamId={id} className="w-10 h-10 object-fit" />  <div>{name}</div>
+                <TeamLogo teamId={id} className="w-10 h-10 object-fit" />
+                <div>{name}</div>
               </div>
             </SelectItem>
           ))}
+
         </Select>
 
         <Input
@@ -129,7 +136,7 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
           Array.from(selectedKeys)
             .map((compositeId) => {
               const ps = selectedPlayerSeasons.find((item) => item.compositeId === compositeId);
-              return ps ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}` : "";
+              return ps ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(league, ps.season.teamId)} ${ps.season.year}` : "";
             })
             .join(", ")
         }
@@ -143,12 +150,15 @@ const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Prop
         ) : (
           playerSeasons.map((ps) => (
             <SelectItem key={ps.compositeId}>
-              {ps.player.firstName} {ps.player.lastName} - {getTeamName(ps.season.teamId)} {ps.season.year}
+              {ps.player.firstName} {ps.player.lastName} - {getTeamName(league, ps.season.teamId)} {ps.season.year}
             </SelectItem>
           ))
         )}
       </Select>
 
+      <div className="flex w-full justify-end mt-4">
+        <CustomPlayerModal setSelectedPlayerSeasons={setSelectedPlayerSeasons} />
+      </div>
       <>
         <Divider />
         <PlayerTable

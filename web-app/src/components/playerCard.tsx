@@ -1,5 +1,6 @@
 import { Card, CardBody, Divider, Spinner } from "@heroui/react";
 import { Player, Position, Season } from "@prisma/client";
+import { useLeague } from "~/context/league-context";
 import { api } from "~/utils/api";
 import { formatPosition, getTeamName } from "~/utils/helper";
 
@@ -34,12 +35,14 @@ const CardHeader = ({ className, playerName, playerPosition }: { className?: str
     </div>)
 }
 
-type PlayerCardProps = {
+type PropType = {
   player: Player;
   onClose: () => void;
 };
 
-const PlayerCard = ({ player }: PlayerCardProps) => {
+const PlayerCard = ({ player }: PropType) => {
+  const { league } = useLeague();
+
   const { data: seasons, isLoading, error } = api.player.getSeasonsByPlayerId.useQuery({ playerId: player.id });
 
   if (isLoading) {
@@ -74,7 +77,7 @@ const PlayerCard = ({ player }: PlayerCardProps) => {
                   {seasons.map((season: Season) => (
                     <tr key={season.id} className="odd:bg-gray-100 even:bg-gray-200">
                       <td className="border border-gray-300 p-2">{season.year}</td>
-                      <td className="border border-gray-300 p-2">{getTeamName(season.teamId)}</td>
+                      <td className="border border-gray-300 p-2">{getTeamName(league, season.teamId)}</td>
                       <td className="border border-gray-300 p-2">{season.plateAppearances}</td>
                       <td className="border border-gray-300 p-2">{season.runs}</td>
                       <td className="border border-gray-300 p-2">{season.hits}</td>

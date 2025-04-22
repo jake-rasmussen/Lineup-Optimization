@@ -1,4 +1,4 @@
-const mlbTeamMap: Map<string, string> = new Map([
+export const mlbTeamMap: Map<string, string> = new Map([
   ["4f735188-37c8-473d-ae32-1f7e34ccf892", "Angels"],
   ["eb21dadd-8f10-4095-8bf3-dfb3b779f107", "Astros"],
   ["27a59d3b-ff7c-48ea-b016-4798f560f5e1", "Athletics"],
@@ -31,4 +31,15 @@ const mlbTeamMap: Map<string, string> = new Map([
   ["a7723160-10b7-4277-a309-d8dd95a8ae65", "Giants"]
 ]);
 
-export default mlbTeamMap;
+export const alpbTeamMap: Map<string, string> = new Map([
+  ["163384", "York Revolution"],
+  ["163381", "Lancaster Stormers"],
+  ["163527", "Charleston Dirty Birds"],
+  ["163526", "Staten Island Ferry Hawks"],
+  ["163528", "Gastonia Baseball Club"],
+  ["163382", "Southern Maryland Blue Crabs"],
+  ["163525", "Hagerstown Flying Boxcars"],
+  ["163377", "Long Island Ducks"],
+  ["163530", "Lexington Legends"],
+  ["163529", "High Point Rockers"],
+]);

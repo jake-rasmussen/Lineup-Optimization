@@ -21,7 +21,7 @@ export default function Build() {
   const [expectedRuns, setExpectedRuns] = useState<number>();
 
   const { setLeague } = useLeague();
-  setLeague(League.MLB);
+  setLeague(League.ALPB);
 
   const handleSubmit = async (
     lineupInput: Record<number, string | undefined>,

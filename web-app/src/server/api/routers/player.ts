@@ -1,4 +1,4 @@
-import { Position } from "@prisma/client";
+import { League } from "@prisma/client";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
@@ -9,6 +9,11 @@ export const playerRouter = createTRPCRouter({
         teamId: z.string().optional(),
         seasonYear: z.number().optional(),
         search: z.string().optional(),
+        league: z.enum([
+          League.ALPB,
+          League.MLB,
+          League.CUSTOM
+        ])
       })
     )
     .query(async ({ ctx, input }) => {
@@ -31,6 +36,7 @@ export const playerRouter = createTRPCRouter({
       const seasonWhere = {
         ...(input.teamId ? { teamId: input.teamId } : {}),
         ...(input.seasonYear ? { year: input.seasonYear } : {}),
+        league: input.league,
       };
 
       return ctx.db.player.findMany({

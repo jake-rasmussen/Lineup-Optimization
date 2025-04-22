@@ -32,6 +32,7 @@ enum BattingHand {
 enum League {
     MLB
     ALPB
+    CUSTOM
 }
 
 model Post {
@@ -63,7 +64,7 @@ model Player {
 
 model Season {
     id               String  @id @default(cuid())
-    year             Int
+    year             Int?
     plateAppearances Int
     runs             Int
     hits             Int
@@ -76,7 +77,7 @@ model Season {
     intentionalWalks Int
     player           Player? @relation(fields: [playerId], references: [id])
     playerId         String?
-    teamId           String
+    teamId           String?
     league           League
 }
 

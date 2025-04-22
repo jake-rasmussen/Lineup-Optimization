@@ -2,6 +2,7 @@ import { Divider, NumberInput, Select, SelectItem } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
 import { PlayerSeason } from "./buildController";
 import { getTeamName } from "~/utils/helper";
+import { useLeague } from "~/context/league-context";
 
 type PropType = {
   lineup: Record<number, string | undefined>;
@@ -10,6 +11,8 @@ type PropType = {
 };
 
 const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) => {
+  const { league } = useLeague();
+
   const lineupSpots = Array.from({ length: 9 }, (_, i) => i + 1);
 
   const handleLineupChange = (spot: number, compositeId: string) => {
@@ -41,14 +44,14 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) =>
               const selectedKey = Array.from(selectedKeys)[0];
               const ps = selectedPlayerSeasons.find((item) => item.compositeId === selectedKey?.key);
               return ps
-                ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(ps.season.teamId)} ${ps.season.year}`
+                ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(league, ps.season.teamId)} ${ps.season.year}`
                 : "";
             }}
             size="sm"
           >
             {selectedPlayerSeasons.map((ps) => (
               <SelectItem key={ps.compositeId}>
-                {ps.player.firstName} {ps.player.lastName} - {getTeamName(ps.season.teamId)} {ps.season.year}
+                {ps.player.firstName} {ps.player.lastName} - {getTeamName(league, ps.season.teamId)} {ps.season.year}
               </SelectItem>
             ))}
           </Select>
