@@ -21,9 +21,9 @@ class LineupOptimizer:
         self.best_score = float('-inf')
         self.evaluated_lineups = 0
         
-        # New attributes for tracking top lineups
+        # Changed default top_n to 15
         self.top_lineups = []  # Will store (score, lineup) tuples
-        self.top_n = 1 # Number of top lineup cycles to consider
+        self.top_n = 15  # Changed from 1 to 15
         
         # Validate constraints
         self._validate_constraints()
@@ -241,7 +241,7 @@ class LineupOptimizer:
 
     # Define process_batch as a static method to avoid pickling issues
     @staticmethod
-    def _process_batch_static(batch, lookup_data, constraints, player_handedness, handedness_constraint, top_n = 1):
+    def _process_batch_static(batch, lookup_data, constraints, player_handedness, handedness_constraint, top_n = 15):
         """
         Process a batch of lineups and return the top N performers.
         
@@ -683,12 +683,12 @@ def generate_bdnrp_data(players, player_stats, excel_file_path, output_csv=None,
         excel.Quit()
 
 
-def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', max_iterations=1000, top_n=1):
+def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', max_iterations=1000, top_n=15):
     """
     Parse JSON input containing player data and constraints, optimize the lineup,
     and return the result as a JSON object.
     
-    Modified to skip optimal leadoff finding when position 1 is constrained.
+    Modified to return the top 15 lineups and their BRP values.
     """
     import os
     import pandas as pd
@@ -781,53 +781,88 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
     print("\nStep 3: Running lineup optimization...")
     best_lineup, best_score = optimizer.optimize(method=method, batch_size=10)
     
-    # Determine whether to find optimal leadoff position
-    if position_1_constrained:
-        print("\nSkipping optimal leadoff position finding since position 1 is constrained.")
-        leadoff_lineup = best_lineup
-        leadoff_score = best_score
-        original_rank = 1  # Just use 1 as the rank since we're keeping the original lineup
-    else:
-        print("\nStep 4: Finding optimal leadoff position...")
-        leadoff_lineup, leadoff_score, original_rank = optimizer.find_optimal_leadoff()
-
-    # Step 5: Calculate base BRP (unweighted, no leadoff adjustment)
-    lineup_stats = optimizer.get_lineup_stats(leadoff_lineup)
-    base_score = lineup_stats['base_bdnrp'].sum()
-
-    # Calculate weighted score - add this line
-    weighted_score = lineup_stats['weighted_bdnrp'].sum()
-
-    # Step 6: Package result
+    # Step 4: Process and return top lineups
     result = {}
-    for i, player in enumerate(leadoff_lineup):
-        result[str(i + 1)] = player
-
-    result["expected runs"] = round(weighted_score * 9, 4) ###### CHANGED BASE_SCORE TO WEIGHTED_SCORE #######
+    result["top_lineups"] = []
     
-    # Always include leadoff_info in a standardized way, but content differs
-    # This ensures the key always exists for the main program
+    # Process each of the top lineups
+    for rank, (cycle_score, lineup) in enumerate(optimizer.top_lineups, 1):
+        lineup_data = {}
+        
+        # Find optimal leadoff for this lineup if position 1 is not constrained
+        if position_1_constrained:
+            # Use the lineup as is with no leadoff optimization
+            optimal_lineup = lineup
+            leadoff_score = cycle_score
+            leadoff_index = 0
+        else:
+            # Find the best leadoff position for this lineup
+            best_leadoff_score = float('-inf')
+            best_leadoff_index = 0
+            
+            for i in range(9):
+                leadoff_score = optimizer.evaluate_lineup_with_leadoff(lineup, i)
+                if leadoff_score > best_leadoff_score:
+                    best_leadoff_score = leadoff_score
+                    best_leadoff_index = i
+            
+            # Create the optimal lineup with the best leadoff
+            optimal_lineup = lineup[best_leadoff_index:] + lineup[:best_leadoff_index]
+            leadoff_score = best_leadoff_score
+            leadoff_index = best_leadoff_index
+        
+        # Calculate stats for this lineup
+        lineup_stats = optimizer.get_lineup_stats(optimal_lineup)
+        base_score = lineup_stats['base_bdnrp'].sum()
+        weighted_score = lineup_stats['weighted_bdnrp'].sum()
+        
+        # Package the lineup data
+        lineup_data["rank"] = rank
+        lineup_data["lineup"] = optimal_lineup
+        lineup_data["cycle_score"] = round(cycle_score, 4)
+        lineup_data["leadoff_adjusted_score"] = round(leadoff_score, 4)
+        lineup_data["base_brp"] = round(base_score, 4)
+        lineup_data["weighted_brp"] = round(weighted_score, 4)
+        lineup_data["expected_runs_per_game"] = round(weighted_score * 9, 4)
+        
+        if not position_1_constrained:
+            lineup_data["optimal_leadoff_index"] = leadoff_index
+            lineup_data["leadoff_player"] = optimal_lineup[0]
+        
+        # Add position-by-position breakdown
+        lineup_data["positions"] = {}
+        for i, player in enumerate(optimal_lineup):
+            lineup_data["positions"][str(i + 1)] = player
+        
+        result["top_lineups"].append(lineup_data)
+    
+    # Add best lineup info
+    best_lineup_data = result["top_lineups"][0]
+    result["best_lineup"] = {pos: player for pos, player in best_lineup_data["positions"].items()}
+    result["expected_runs"] = best_lineup_data["expected_runs_per_game"]
+    
+    # Add the leadoff_info for compatibility with the original program
     result["leadoff_info"] = {
-        "leadoff_player": leadoff_lineup[0],
+        "leadoff_player": best_lineup_data["positions"]["1"],
         "constrained": position_1_constrained
     }
     
     if not position_1_constrained:
-        result["leadoff_info"]["leadoff_adjusted_score"] = round(leadoff_score, 4)
-        result["leadoff_info"]["original_cycle_rank"] = original_rank
+        result["leadoff_info"]["leadoff_adjusted_score"] = best_lineup_data["leadoff_adjusted_score"]
+        result["leadoff_info"]["original_cycle_rank"] = 1
         result["leadoff_info"]["total_cycles_evaluated"] = len(optimizer.top_lineups)
-
+    
+    # Print optimization results
     print("\n===== OPTIMIZATION RESULTS =====")
-    print(f"Best lineup: {leadoff_lineup}")
-    
-    if position_1_constrained:
-        print(f"Leadoff position was constrained to: {leadoff_lineup[0]}")
-    else:
-        print(f"Leadoff-adjusted score: {leadoff_score:.4f}")
-        print(f"Original cycle rank before leadoff selection: {original_rank} of {len(optimizer.top_lineups)}")
-    
-    print(f"Expected run production per inning: {weighted_score:.4f}")
-    print(f"Expected run production per game: {weighted_score * 9:.4f}")
+    print(f"\nTop {len(result['top_lineups'])} Lineups:")
+    for lineup_data in result["top_lineups"]:
+        print(f"\nRank {lineup_data['rank']}:")
+        print(f"  Lineup: {lineup_data['lineup']}")
+        print(f"  Cycle score: {lineup_data['cycle_score']}")
+        print(f"  Leadoff-adjusted score: {lineup_data['leadoff_adjusted_score']}")
+        print(f"  Expected runs per game: {lineup_data['expected_runs_per_game']}")
+        if not position_1_constrained:
+            print(f"  Optimal leadoff player: {lineup_data['leadoff_player']}")
 
     return result
 
@@ -837,58 +872,151 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
 if __name__ == "__main__":
     # Your test_input dictionary and main execution code here
     test_input = {
-    "json_input": {
-        "1": {
-            "name": "Bryson Stott",
-            "data": {"pa": 506, "h": 124, "2b": 19, "3b": 2, "hr": 11, "sb": 0, "bb": 52, "hbp": 3, "ibb": 1},
-            "batting_hand": "LEFT"
-        },
-        "2": {
-            "name": "Trea Turner",
-            "data": {"pa": 539, "h": 149, "2b": 25, "3b": 0, "hr": 21, "sb": 19, "bb": 27, "hbp": 6, "ibb": 0},
-            "batting_hand": "RIGHT"
-        },
-        "3": {
-            "name": "Bryce Harper",
-            "data": {"pa": 550, "h": 157, "2b": 42, "3b": 0, "hr": 30, "sb": 0, "bb": 65, "hbp": 2, "ibb": 11},
-            "batting_hand": "LEFT"
-        },
-        "4": {
-            "name": "Kyle Schwarber",
-            "data": {"pa": 573, "h": 142, "2b": 22, "3b": 0, "hr": 38, "sb": 0, "bb": 102, "hbp": 5, "ibb": 4},
-            "batting_hand": "LEFT"
-        },
-        "5": {
-            "name": "Nick Castellanos",
-            "data": {"pa": 659, "h": 154, "2b": 30, "3b": 4, "hr": 23, "sb": 6, "bb": 41, "hbp": 10, "ibb": 2},
-            "batting_hand": "RIGHT"
-        },
-        "6": {
-            "name": "Jacob Realmuto",
-            "data": {"pa": 380, "h": 101, "2b": 18, "3b": 1, "hr": 14, "sb": 0, "bb": 26, "hbp": 5, "ibb": 1},
-            "batting_hand": "RIGHT"
-        },
-        "7": {
-            "name": "Max Kepler",
-            "data": {"pa": 399, "h": 93, "2b": 21, "3b": 1, "hr": 8, "sb": 1, "bb": 22, "hbp": 5, "ibb": 0},
-            "batting_hand": "LEFT"
-        },
-        "8": {
-            "name": "Alec Bohm",
-            "data": {"pa": 554, "h": 155, "2b": 44, "3b": 2, "hr": 15, "sb": 0, "bb": 38, "hbp": 6, "ibb": 2},
-            "batting_hand": "RIGHT"
-        },
-        "9": {
-            "name": "Brandon Marsh",
-            "data": {"pa": 418, "h": 104, "2b": 17, "3b": 3, "hr": 16, "sb": 0, "bb": 50, "hbp": 2, "ibb": 0},
-            "batting_hand": "LEFT"
-        }
+  "json_input": {
+    "1": {
+      "name": "Francisco Lindor",
+      "data": {
+        "pa": 720,
+        "h": 163,
+        "2b": 34,
+        "3b": 2,
+        "hr": 32,
+        "sb": 29,
+        "bb": 65,
+        "hbp": 5,
+        "ibb": 5
+      },
+      "batting_hand": "SWITCH"
     },
-    "excel_file_path": r"C:\Users\buman\OneDrive\Desktop\Lineup_Optimization\Copy_Of_Lineup_Optimization.xlsx",
-    "method": "exhaustive",
-    "max_iterations": 1000,
-    "top_n": 1
+    "2": {
+      "name": "Juan Soto",
+      "data": {
+        "pa": 713,
+        "h": 166,
+        "2b": 31,
+        "3b": 4,
+        "hr": 41,
+        "sb": 7,
+        "bb": 129,
+        "hbp": 4,
+        "ibb": 2
+      },
+      "batting_hand": "LEFT"
+    },
+    "3": {
+      "name": "Pete Alonso",
+      "data": {
+        "pa": 685,
+        "h": 146,
+        "2b": 24,
+        "3b": 0,
+        "hr": 34,
+        "sb": 3,
+        "bb": 57,
+        "hbp": 9,
+        "ibb": 3
+      },
+      "batting_hand": "RIGHT"
+    },
+    "4": {
+      "name": "Jesse Winker",
+      "data": {
+        "pa": 508,
+        "h": 129,
+        "2b": 25,
+        "3b": 1,
+        "hr": 14,
+        "sb": 14,
+        "bb": 63,
+        "hbp": 5,
+        "ibb": 2
+      },
+      "batting_hand": "LEFT"
+    },
+    "5": {
+      "name": "Mark Vientos",
+      "data": {
+        "pa": 454,
+        "h": 110,
+        "2b": 22,
+        "3b": 0,
+        "hr": 27,
+        "sb": 0,
+        "bb": 33,
+        "hbp": 3,
+        "ibb": 0
+      },
+      "batting_hand": "RIGHT"
+    },
+    "6": {
+      "name": "Brandon Nimmo",
+      "data": {
+        "pa": 663,
+        "h": 151,
+        "2b": 30,
+        "3b": 2,
+        "hr": 23,
+        "sb": 15,
+        "bb": 77,
+        "hbp": 10,
+        "ibb": 3
+      },
+      "batting_hand": "LEFT"
+    },
+    "7": {
+      "name": "Francisco Alvarez",
+      "data": {
+        "pa": 342,
+        "h": 73,
+        "2b": 14,
+        "3b": 2,
+        "hr": 11,
+        "sb": 1,
+        "bb": 30,
+        "hbp": 2,
+        "ibb": 1
+      },
+      "batting_hand": "RIGHT"
+    },
+    "8": {
+      "name": "Jeff McNeil",
+      "data": {
+        "pa": 648,
+        "h": 158,
+        "2b": 25,
+        "3b": 4,
+        "hr": 10,
+        "sb": 10,
+        "bb": 39,
+        "hbp": 18,
+        "ibb": 2
+      },
+      "batting_hand": "LEFT"
+    },
+    "9": {
+      "name": "Luisangel Acuña",
+      "data": {
+        "pa": 39,
+        "h": 12,
+        "2b": 2,
+        "3b": 0,
+        "hr": 3,
+        "sb": 0,
+        "bb": 3,
+        "hbp": 1,
+        "ibb": 0
+      },
+      "batting_hand": "RIGHT"
+    }
+  },
+  "excel_file_path": "C:\\Users\\buman\\OneDrive\\Desktop\\Lineup_Optimization\\Copy_Of_Lineup_Optimization.xlsx",
+  "method": "exhaustive",
+  "max_iterations": 1000,
+  "top_n": 15
 }
+
+
+
 
 
     
@@ -900,11 +1028,24 @@ if __name__ == "__main__":
         top_n=test_input["top_n"]
     )
     
-    print("\nFinal optimized lineup:")
-    for pos in map(str, range(1, 10)):
-        print(f"{pos}. {result[pos]}")
+    # Print comprehensive results
+    print("\n\n===== DETAILED RESULTS =====")
+    print(f"Total unique lineup cycles evaluated: {len(result['top_lineups'])}")
     
-    print(f"\nExpected runs per game: {result['expected runs']}")
+    print("\nTop 15 Lineups:")
+    for lineup_data in result["top_lineups"]:
+        print(f"\n--- Rank {lineup_data['rank']} ---")
+        for pos in range(1, 10):
+            print(f"{pos}. {lineup_data['positions'][str(pos)]}")
+        print(f"Cycle score: {lineup_data['cycle_score']}")
+        print(f"Leadoff-adjusted score: {lineup_data['leadoff_adjusted_score']}")
+        print(f"Expected runs per game: {lineup_data['expected_runs_per_game']}")
+    
+    print("\n\n===== BEST LINEUP =====")
+    for pos in map(str, range(1, 10)):
+        print(f"{pos}. {result['best_lineup'][pos]}")
+    
+    print(f"\nExpected runs per game: {result['expected_runs']}")
     
     # Updated print statement to use the standardized leadoff_info key
     print(f"Leadoff player: {result['leadoff_info']['leadoff_player']}")
