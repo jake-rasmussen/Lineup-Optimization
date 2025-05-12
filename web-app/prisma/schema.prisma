@@ -10,11 +10,77 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+enum Position {
+    PITCHER
+    CATCHER
+    FIRST_BASE
+    SECOND_BASE
+    THIRD_BASE
+    LEFT_FIELD
+    CENTER_FIELD
+    RIGHT_FIELD
+    SHORTSTOP
+    DESIGNATED_HITTER
+}
 
-    @@index([name])
+enum BattingHand {
+    LEFT
+    RIGHT
+    SWITCH
+}
+
+enum League {
+    MLB
+    ALPB
+    AAA
+    AA
+    A
+    CUSTOM
+}
+
+model User {
+    email       String        @id @unique
+    savedLineup SavedLineup[]
+}
+
+model Player {
+    id           String      @id @default(cuid())
+    firstName    String
+    lastName     String
+    position     Position
+    seasons      Season[]
+    battingHand  BattingHand
+    jerseyNumber Int?
+    salary       Int?
+    birthday     DateTime?
+}
+
+model Season {
+    id               String  @id @default(cuid())
+    year             Int?
+    plateAppearances Int
+    runs             Int
+    hits             Int
+    singles          Int
+    doubles          Int
+    triples          Int
+    homeruns         Int
+    walks            Int
+    hitByPitch       Int
+    intentionalWalks Int
+    player           Player? @relation(fields: [playerId], references: [id])
+    playerId         String?
+    teamId           String?
+    teamName         String
+    league           League
+}
+
+model SavedLineup {
+    id           String   @id @default(cuid())
+    createdAt    DateTime @default(now())
+    name         String
+    data         Json
+    expectedRuns Float?
+    user         User?    @relation(fields: [userEmail], references: [email])
+    userEmail    String?
 }
