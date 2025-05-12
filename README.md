@@ -50,3 +50,7 @@ Start the development server:
 cd web-server
 py -m uvicorn main:app --reload
 ```
+
+### To Build an ALPB Lineup
+
+Go to [http://localhost:3000/alpb/build](http://localhost:3000/alpb/build) to build an ALPB lineup. We have this separated to allow the ALPB widget to point directly to here, and have the MLB lineup creator exposed to anybody else accessing the site.
