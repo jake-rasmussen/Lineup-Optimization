@@ -1,173 +1,200 @@
-import { Divider, Input, Select, SelectItem } from "@heroui/react";
-import { Dispatch, SetStateAction, useState } from "react";
+import {
+  Divider, Input, Select, SelectItem,
+} from "@heroui/react";
+import { useEffect, useState } from "react";
 import type { Selection } from "@heroui/react";
 import toast from "react-hot-toast";
-import { mlbTeamMap, alpbTeamMap } from "~/data/teams";
+import { mlbTeamNameMap } from "~/data/teams";
 import { api } from "~/utils/api";
 import { League, Player, Season } from "@prisma/client";
-import PlayerTable from "../playerTableEdit";
-import { PlayerSeason } from "./buildController";
-import { getTeamName } from "~/utils/helper";
-import TeamLogo from "../teamLogo";
+import { PlayerSeason } from "~/data/types";
+import PlayerTable from "~/components/playerTableEdit";
 import CustomPlayerModal from "./customPlayerModal";
-import { useLeague } from "~/context/league-context";
+import { getPlayerSeasonCompositeId } from "~/utils/helper";
 
 type PropType = {
   selectedPlayerSeasons: PlayerSeason[];
-  setSelectedPlayerSeasons: Dispatch<SetStateAction<PlayerSeason[]>>;
+  setSelectedPlayerSeasons: React.Dispatch<React.SetStateAction<PlayerSeason[]>>;
 };
 
-const seasonYears = ["2024", "2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015"]
+type MLBTeam = {
+  id: number;
+  name: string;
+};
 
-const SelectPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropType) => {
-  const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+const SelectMLBPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropType) => {
+  const [selectedYear, setSelectedYear] = useState<string>();
+  const [selectedTeamId, setSelectedTeamId] = useState<string>();
   const [search, setSearch] = useState<string>("");
-  const [dropdownOpened, setDropdownOpened] = useState(false);
+  const [mlbTeams, setMlbTeams] = useState<MLBTeam[]>([]);
 
-  const { league } = useLeague();
+  useEffect(() => {
+    if (!selectedYear) return;
+    fetch(`https://statsapi.mlb.com/api/v1/teams?sportId=1&season=${selectedYear}&activeStatus=Y`)
+      .then((res) => res.json())
+      .then((data) => setMlbTeams(data.teams || []));
+  }, [selectedYear]);
 
-  const { data: fetchedPlayers, isLoading } = api.player.getPlayersByFilter.useQuery(
-    {
-      teamId: selectedTeam || undefined,
-      seasonYear: selectedYear ? parseInt(selectedYear) : undefined,
-      search: search || undefined,
-      league,
-    },
-    {
-      enabled: dropdownOpened && (!!selectedTeam || !!selectedYear || search.length > 0),
-    }
-  );
-
-  const playerSeasons = fetchedPlayers
-    ? fetchedPlayers.flatMap((player: Player & { seasons: Season[] }) =>
-      player.seasons.map((season) => ({
-        compositeId: `${player.id}-${season.id}`,
-        player,
-        season,
-      }))
-    )
-    : [];
-
-  const selectedKeys = new Set(selectedPlayerSeasons.map((ps) => ps.compositeId));
-
-  const handleSelectPlayerSeasons = (keys: Selection) => {
-    if (keys instanceof Set) {
-      if (keys.size > 9) {
-        toast.dismiss();
-        toast.error("You cannot select more than 9 player seasons.");
-        return;
-      }
-      const selectedIds = Array.from(keys);
-      const psMap = new Map<string, PlayerSeason>();
-
-      selectedPlayerSeasons.forEach((ps) => {
-        if (selectedIds.includes(ps.compositeId)) {
-          psMap.set(ps.compositeId, ps);
-        }
-      });
-
-      playerSeasons.forEach((ps) => {
-        if (selectedIds.includes(ps.compositeId) && !psMap.has(ps.compositeId)) {
-          psMap.set(ps.compositeId, ps);
-        }
-      });
-
-      setSelectedPlayerSeasons(Array.from(psMap.values()));
-    }
+  const queryInput = {
+    teamId: selectedTeamId || undefined,
+    seasonYear: selectedYear ? parseInt(selectedYear) : undefined,
+    search: search || undefined,
   };
 
+  const { data: fetchedPlayers, isLoading: isLoadingPlayers } = api.mlb.getPlayersByFilter.useQuery(queryInput);
+  const { mutateAsync: getPlayerStats } = api.mlb.getPlayerStats.useMutation();
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    setIsLoading(isLoadingPlayers)
+  }, [isLoadingPlayers])
+
+  const selectedPlayers = selectedPlayerSeasons.map((playerSeason) => playerSeason.player);
+  const selectedKeys = new Set(selectedPlayers.map((player) => player.id));
+  const seasonYears = Array.from({ length: 2025 - 1910 + 1 }, (_, i) => (2025 - i).toString());
+
+  const handleSelectPlayer = async (
+    keys: Selection,
+    newPlayerId: string,
+    player: Player,
+    newStats: Season[]
+  ) => {
+    if (!(keys instanceof Set)) return;
+    if (keys.size > 9) return toast.error("You cannot select more than 9 players.");
+
+    if (selectedPlayerSeasons.some((playerSeason) => playerSeason.player.id === newPlayerId)) return;
+
+    let season: Season | undefined = undefined;
+    if (selectedYear && selectedTeamId) {
+      season = newStats.find((season) => season.year === parseInt(selectedYear) && season.teamId === selectedTeamId);
+    }
+
+    const compositeId = getPlayerSeasonCompositeId(player, season)
+
+    const newEntry: PlayerSeason = {
+      player,
+      season,
+      compositeId,
+    };
+
+    setSelectedPlayerSeasons((prev) => [...prev, newEntry]);
+  };
+
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 w-full">
       <div className="flex gap-4">
-        <Select
-          label="Select Year"
-          placeholder="Choose a year"
-          selectedKeys={selectedYear ? new Set([selectedYear]) : new Set()}
-          onSelectionChange={(keys) => setSelectedYear(Array.from(keys)[0] as string)}
-          className="max-w-40"
-          renderValue={() => selectedYear ?? "Choose a year"}
-        >
-          {seasonYears.map((year) => (
-            <SelectItem key={year}>
-              {year}
-            </SelectItem>
-          ))}
-        </Select>
+        <div className="flex gap-4 w-1/2">
+          <Select
+            label="Select Roster Year"
+            selectedKeys={selectedYear ? new Set([selectedYear]) : new Set()}
+            onSelectionChange={(keys) => {
+              setSelectedYear(Array.from(keys)[0] as string);
+              setSelectedTeamId(undefined);
+            }}
+            className="max-w-60"
+            description="Select player from team"
+          >
+            {seasonYears.map((year) => (
+              <SelectItem key={year} textValue={`${year}`}>{year}</SelectItem>
+            ))}
+          </Select>
 
-        <Select
-          label="Select Team"
-          placeholder="Choose a team"
-          selectedKeys={selectedTeam ? new Set([selectedTeam]) : new Set()}
-          onSelectionChange={(keys) => setSelectedTeam(Array.from(keys)[0] as string)}
-          className="max-w-60"
-          renderValue={() => {
-            const teamName = selectedTeam ? (league === League.MLB ? mlbTeamMap : alpbTeamMap).get(selectedTeam) : "Choose a team";
-            return teamName;
-          }}
-        >
-          {Array.from((league === League.MLB ? mlbTeamMap : alpbTeamMap).entries()).map(([id, name]) => (
-            <SelectItem key={id}>
-              <div className="flex flex-row items-center gap-2">
-                <TeamLogo teamId={id} className="w-10 h-10 object-fit" />
-                <div>{name}</div>
-              </div>
-            </SelectItem>
-          ))}
+          <Select
+            label="Select Team"
+            selectedKeys={selectedTeamId ? new Set([selectedTeamId]) : new Set()}
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0];
+              if (selected) {
+                setSelectedTeamId(selected.toString());
+              }
+            }}
+            renderValue={(items) => {
+              const id = items[0]?.key;
+              const team = mlbTeams.find((t) => t.id.toString() === id);
+              if (!team) return null;
+              return <p>{team.name}</p>;
+            }}
+            isDisabled={!selectedYear}
+          >
+            {mlbTeams.map((team) => {
+              const modernName = mlbTeamNameMap.get(team.id.toString());
+              return (
+                <SelectItem key={team.id.toString()} textValue={`${team.name}`}>
+                  <div className="flex items-center gap-2">
+                    {modernName === team.name ? (
+                      <img src={`https://www.mlbstatic.com/team-logos/${team.id}.svg`} className="w-10 h-10" />
+                    ) : (
+                      <div className="w-10 h-10 flex items-center justify-center text-2xl">⚾️</div>
+                    )}
+                    <div>{team.name}</div>
+                  </div>
+                </SelectItem>
+              );
+            })}
+          </Select>
+        </div>
 
-        </Select>
+        <Divider orientation="vertical" />
 
-        <Input
-          label="Search player name"
-          value={search}
-          onValueChange={setSearch}
-          className="grow h-full flex"
-        />
+        <div className="w-1/2">
+          <Input
+            label="Search player name"
+            value={search}
+            onValueChange={setSearch}
+            className="flex-grow"
+            description="Select player from direct search"
+          />
+        </div>
       </div>
 
       <Select
-        label="Select Player Seasons"
-        placeholder="Click to load player seasons"
+        label="Choose Player"
+        placeholder="Select filters or search to find players"
         selectionMode="multiple"
         selectedKeys={selectedKeys}
-        onFocus={() => setDropdownOpened(true)}
-        onSelectionChange={handleSelectPlayerSeasons}
-        renderValue={() =>
-          Array.from(selectedKeys)
-            .map((compositeId) => {
-              const ps = selectedPlayerSeasons.find((item) => item.compositeId === compositeId);
-              return ps ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(league, ps.season.teamId)} ${ps.season.year}` : "";
-            })
-            .join(", ")
-        }
+        onSelectionChange={async (keys) => {
+          const currentKey = keys.currentKey;
+          const playerId = String(currentKey);
+
+          const player = fetchedPlayers?.find((player) => player.id === playerId);
+          if (!player) return;
+
+          setIsLoading(true);
+
+          const stats = await getPlayerStats({ playerId });
+          handleSelectPlayer(keys, playerId, player, stats);
+          
+          setIsLoading(false);
+        }}
         isLoading={isLoading}
-        isDisabled={selectedTeam === null && selectedYear === null && search.length === 0}
+        isDisabled={(selectedTeamId && !selectedYear) || (!selectedTeamId && search.length === 0) || isLoading}
       >
-        {isLoading ? (
-          <SelectItem key="loading" className="w-full text-gray-400" isReadOnly>
-            Loading player seasons...
-          </SelectItem>
-        ) : (
-          playerSeasons.map((ps) => (
-            <SelectItem key={ps.compositeId}>
-              {ps.player.firstName} {ps.player.lastName} - {getTeamName(league, ps.season.teamId)} {ps.season.year}
-            </SelectItem>
-          ))
-        )}
+        <>
+          {(fetchedPlayers ?? [])
+            .filter((player) => !selectedPlayers.some((selectedPlayer) => selectedPlayer.id === player.id))
+            .map((player) => (
+              <SelectItem key={player.id} textValue={`${player.firstName} ${player.lastName}`}>
+                {player.firstName.replace(/&apos;/g, "'")} {player.lastName.replace(/&apos;/g, "'")} {
+                  (selectedTeamId && selectedYear) ? `- ${mlbTeams.find((team) => team.id === parseInt(selectedTeamId))?.name} ${selectedYear}` : ""
+                }
+              </SelectItem>
+            ))}
+        </>
       </Select>
 
-      <div className="flex w-full justify-end mt-4">
+      <div className="flex justify-end mt-4 gap-4">
         <CustomPlayerModal setSelectedPlayerSeasons={setSelectedPlayerSeasons} />
       </div>
-      <>
-        <Divider />
-        <PlayerTable
-          selectedPlayerSeasons={selectedPlayerSeasons}
-          setSelectedPlayerSeasons={setSelectedPlayerSeasons}
-        />
-      </>
-    </div>
+
+      <Divider />
+      <PlayerTable
+        selectedPlayerSeasons={selectedPlayerSeasons}
+        setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+      />
+    </div >
   );
 };
 
-export default SelectPlayers;
+export default SelectMLBPlayers;

@@ -8,50 +8,43 @@ export default function Saved() {
   const {
     data: savedLineups,
     isLoading,
-  } = api.lineup.getSavedLineups.useQuery();
+  } = api.lineup.getLineups.useQuery();
 
   return (
-    <>
-      <main className="flex min-h-screen flex-col items-center">
-        {isLoading ? (
-          <div className="flex flex-col gap-4 min-h-screen w-full items-center justify-center">
-            <h2 className="text-xl">Loading lineups...</h2>
-            <Progress
-              isIndeterminate
-              aria-label="Loading..."
-              className="max-w-md"
-              size="md"
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center">
-            <h1 className="text-4xl font-bold text-center">Saved Lineups</h1>
+    <main className="flex min-h-screen flex-col items-center py-16 px-4 w-full">
+      {isLoading ? (
+        <div className="flex flex-col gap-4 items-center justify-center h-full w-full max-w-md">
+          <h2 className="text-xl font-medium text-white">Loading lineups...</h2>
+          <Progress
+            isIndeterminate
+            aria-label="Loading..."
+            className="w-full"
+          />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-12 w-full max-w-5xl">
+          <h1 className="text-4xl font-bold text-center text-white">Saved Lineups</h1>
 
-            <div className="flex flex-col gap-12 px-4 items-center w-full">
-              {savedLineups && savedLineups.length > 0 ? (
-                savedLineups.map((lineup) => (
-                  <SavedLineupCard
-                    key={lineup.id}
-                    lineup={lineup}
-                  />
-                ))
-              ) : (
-                <p>No saved lineups found.</p>
-              )}
+          {savedLineups && savedLineups.length > 0 ? (
+            <div className="w-full flex flex-wrap justify-center gap-8">
+              {savedLineups.map((lineup: any) => (
+                <SavedLineupCard key={lineup.id} lineup={lineup} />
+              ))}
             </div>
-          </div>
-        )}
-      </main>
-    </>
+          ) : (
+            <p className="text-lg text-gray-500">No saved lineups found.</p>
+          )}
+        </div>
+      )}
+    </main>
   );
 }
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const supabase = createClient(context);
+  const { data: { user }, error } = await supabase.auth.getUser();
 
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error || !data) {
+  if (error || !user) {
     return {
       redirect: {
         destination: "/",
@@ -62,7 +55,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      user: data.user,
+      user,
     },
   };
 }

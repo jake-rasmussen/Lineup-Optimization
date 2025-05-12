@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow, Tooltip } from "@heroui/react";
-import { DisplayLineupPlayer } from "~/pages/build";
+import { DisplayLineupPlayer } from "~/data/types";
 
 type PropType = {
   lineup: Record<number, DisplayLineupPlayer>;
@@ -35,8 +35,12 @@ const PlayerTable = ({ lineup }: PropType) => {
         {Object.entries(lineup).map(([spot, displayPlayer]) => (
           <TableRow key={spot}>
             <TableCell>{spot}</TableCell>
-            <TableCell className={displayPlayer.isSelected || displayPlayer.isUnassigned ? "font-black" : ""}>{`${displayPlayer.playerName}`}</TableCell>
-            <TableCell>{renderPlayerDesignation(displayPlayer)}</TableCell>
+            <TableCell className={displayPlayer.isSelected || displayPlayer.isUnassigned ? "font-black" : ""}>{`${displayPlayer.playerSeason.player.firstName} ${displayPlayer.playerSeason.player.lastName}`}</TableCell>
+            <TableCell>
+              <div className="w-fit hover:cursor-pointer">
+                {renderPlayerDesignation(displayPlayer)}
+              </div>
+            </TableCell>
           </TableRow>
         ))}
       </TableBody>

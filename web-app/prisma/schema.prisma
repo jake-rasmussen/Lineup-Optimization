@@ -32,30 +32,23 @@ enum BattingHand {
 enum League {
     MLB
     ALPB
+    AAA
+    AA
+    A
     CUSTOM
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-
-    @@index([name])
-}
-
 model User {
-    email  String   @id @unique
-    lineup Lineup[]
+    email       String        @id @unique
+    savedLineup SavedLineup[]
 }
 
 model Player {
-    id           String        @id @default(cuid())
+    id           String      @id @default(cuid())
     firstName    String
     lastName     String
     position     Position
     seasons      Season[]
-    lineupEntry  LineupEntry[]
     battingHand  BattingHand
     jerseyNumber Int?
     salary       Int?
@@ -78,22 +71,16 @@ model Season {
     player           Player? @relation(fields: [playerId], references: [id])
     playerId         String?
     teamId           String?
+    teamName         String
     league           League
 }
 
-model Lineup {
-    id        String        @id @default(cuid())
-    user      User          @relation(fields: [userEmail], references: [email])
-    entries   LineupEntry[]
-    userEmail String
-}
-
-model LineupEntry {
-    lineupId    String
-    playerId    String
-    battingSpot Int
-    player      Player @relation(fields: [playerId], references: [id])
-    lineup      Lineup @relation(fields: [lineupId], references: [id])
-
-    @@id([lineupId, playerId])
+model SavedLineup {
+    id           String   @id @default(cuid())
+    createdAt    DateTime @default(now())
+    name         String
+    data         Json
+    expectedRuns Float?
+    user         User?    @relation(fields: [userEmail], references: [email])
+    userEmail    String?
 }

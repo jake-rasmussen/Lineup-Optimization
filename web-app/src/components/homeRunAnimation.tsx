@@ -26,7 +26,7 @@ const HomeRunAnimation = () => {
 
   return (
     <div className="relative max-w-xl w-full">
-      <img src="Field.svg" alt="Field" className="w-full" />
+      <img src="/Field White.svg" alt="Field" className="w-full" />
       {animKey === 0 ? null : (
         <motion.div
           key={animKey}

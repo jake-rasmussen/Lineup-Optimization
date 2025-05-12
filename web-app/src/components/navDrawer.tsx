@@ -51,7 +51,7 @@ const NavDrawer = () => {
               <DrawerBody className="flex flex-col gap-4">
                 <Link href="/build" className="flex flex-col items-center">
                   <h1 className="text-xl font-black uppercase">Lineup Optimizer</h1>
-                  <img src="Field.svg" alt="Field" style={{ width: "100%", height: "auto" }} />
+                  <img src="/Field.svg" alt="Field" style={{ width: "100%", height: "auto" }} />
                 </Link>
 
                 <div className="grow flex flex-col gap-4 justify-start my-20">

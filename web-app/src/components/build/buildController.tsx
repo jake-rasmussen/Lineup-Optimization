@@ -2,14 +2,12 @@ import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
 import { useState } from "react";
 import AssignLineup from "./assignLineup";
 import ConfirmLineup from "./confirmLineup";
-import { League, Player, Season } from "@prisma/client";
-import SelectPlayers from "./selectPlayers";
-
-export type PlayerSeason = {
-  compositeId: string;
-  player: Player;
-  season: Season;
-}
+import SelectPlayersMLB from "./selectPlayers";
+import SelectPlayersALPB from "./alpb/selectPlayers";
+import { PlayerSeason } from "~/data/types";
+import { League } from "@prisma/client";
+import { useLeague } from "~/context/leagueContext";
+import toast from "react-hot-toast";
 
 type PropType = {
   handleSubmit: (
@@ -22,13 +20,15 @@ type PropType = {
 const BuildController = ({ handleSubmit }: PropType) => {
   const [step, setStep] = useState(0);
   const [selectedPlayerSeasons, setSelectedPlayerSeasons] = useState<PlayerSeason[]>([]);
-  
   const [lineup, setLineup] = useState<Record<number, string | undefined>>(
     Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, undefined]))
   );
 
+  const { league } = useLeague();
+
   const nextStep = () => {
-    if (step === 0 && selectedPlayerSeasons.length > 9) {
+    if (selectedPlayerSeasons.length != 9) {
+      toast.error("Please select 9 players");
       return;
     } else {
       setStep((prev) => prev + 1);
@@ -37,21 +37,23 @@ const BuildController = ({ handleSubmit }: PropType) => {
 
   const prevStep = () => setStep((prev) => prev - 1);
 
-  // Determine which composite IDs are assigned in the lineup.
-  const assignedComposite = new Set(Object.values(lineup).filter(Boolean));
-  // Get unassigned player seasons (those not in the lineup).
-  const unassignedPlayerSeasons = selectedPlayerSeasons.filter(
-    (ps) => !assignedComposite.has(ps.compositeId)
+  const assignedPlayerIds = new Set(
+    Object.values(lineup).filter((id): id is string => typeof id === "string")
+  );
+  const unassignedPlayerIds = selectedPlayerSeasons.filter(
+    (selectedPlayerSeason) => !assignedPlayerIds.has(selectedPlayerSeason.compositeId)
   );
 
+
   return (
-    <Card className="h-[75vh] w-full max-w-5xl shadow-blue-200 shadow-xl border">
+    <Card className="h-[75vh] w-full p-4 m-10 max-w-7xl shadow-blue-200 shadow-xl border">
       {step === 0 && (
         <CardHeader>
           <div>
             <h3>Select Players</h3>
             <p className="text-gray-500 font-normal text-sm">
               Use the dropdown and search bar below to pick players based on team, year and name.
+              Please select 9 player's season.
             </p>
           </div>
         </CardHeader>
@@ -76,12 +78,23 @@ const BuildController = ({ handleSubmit }: PropType) => {
           </div>
         </CardHeader>
       )}
-      <CardBody className="max-h-[70vh] overflow-y-scroll">
+      <CardBody className="max-h-[70vh] overflow-y-scroll flex items-center">
         {step === 0 && (
-          <SelectPlayers
-            selectedPlayerSeasons={selectedPlayerSeasons}
-            setSelectedPlayerSeasons={setSelectedPlayerSeasons}
-          />
+          <>
+            {
+              league === League.MLB ? (
+                <SelectPlayersMLB
+                  selectedPlayerSeasons={selectedPlayerSeasons}
+                  setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+                />
+              ) : (
+                <SelectPlayersALPB
+                  selectedPlayerSeasons={selectedPlayerSeasons}
+                  setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+                />
+              )
+            }
+          </>
         )}
 
         {step === 1 && (
@@ -96,7 +109,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <ConfirmLineup
             lineup={lineup}
             selectedPlayerSeasons={selectedPlayerSeasons}
-            unassignedPlayers={unassignedPlayerSeasons.map(ps => ps.compositeId)}
+            unassignedPlayers={unassignedPlayerIds.map(entry => `${entry.player.firstName} ${entry.player.lastName}`)}
           />
         )}
       </CardBody>
@@ -110,14 +123,18 @@ const BuildController = ({ handleSubmit }: PropType) => {
           Back
         </Button>
         {step < 2 && (
-          <Button color="primary" onPress={nextStep}>
+          <Button
+            color="primary"
+            onPress={nextStep}
+            isDisabled={selectedPlayerSeasons.some((playerSeason) => !playerSeason.season)}
+          >
             Next
           </Button>
         )}
         {step === 2 && (
           <Button
             onPress={() =>
-              handleSubmit(lineup, unassignedPlayerSeasons, selectedPlayerSeasons)
+              handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons)
             }
             color="primary"
           >

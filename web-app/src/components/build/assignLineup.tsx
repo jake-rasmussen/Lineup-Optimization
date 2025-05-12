@@ -1,8 +1,7 @@
 import { Divider, NumberInput, Select, SelectItem } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
-import { PlayerSeason } from "./buildController";
-import { getTeamName } from "~/utils/helper";
-import { useLeague } from "~/context/league-context";
+import { PlayerSeason } from "~/data/types";
+import { getPlayerSeasonString } from "~/utils/helper";
 
 type PropType = {
   lineup: Record<number, string | undefined>;
@@ -11,25 +10,25 @@ type PropType = {
 };
 
 const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) => {
-  const { league } = useLeague();
-
   const lineupSpots = Array.from({ length: 9 }, (_, i) => i + 1);
 
   const handleLineupChange = (spot: number, compositeId: string) => {
     setLineup((prev) => {
       const newLineup = { ...prev };
-      Object.keys(newLineup).forEach((key) => {
-        if (newLineup[Number(key)] === compositeId) {
-          delete newLineup[Number(key)];
+
+      Object.entries(newLineup).forEach(([k, v]) => {
+        if (v === compositeId) {
+          newLineup[Number(k)] = undefined;
         }
       });
+
       newLineup[spot] = compositeId;
       return newLineup;
     });
   };
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 w-full">
       <div className="flex flex-col gap-4">
         {lineupSpots.map((spot) => (
           <Select
@@ -42,16 +41,19 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) =>
             }
             renderValue={(selectedKeys) => {
               const selectedKey = Array.from(selectedKeys)[0];
-              const ps = selectedPlayerSeasons.find((item) => item.compositeId === selectedKey?.key);
-              return ps
-                ? `${ps.player.firstName} ${ps.player.lastName} - ${getTeamName(league, ps.season.teamId)} ${ps.season.year}`
-                : "";
+              const playerSeason = selectedPlayerSeasons.find((selectedPlayerSeason) => selectedPlayerSeason.compositeId === selectedKey?.key);
+
+              if (playerSeason) {
+                return getPlayerSeasonString(playerSeason);
+              } else {
+                return "-";
+              }
             }}
             size="sm"
           >
-            {selectedPlayerSeasons.map((ps) => (
-              <SelectItem key={ps.compositeId}>
-                {ps.player.firstName} {ps.player.lastName} - {getTeamName(league, ps.season.teamId)} {ps.season.year}
+            {selectedPlayerSeasons.map((playerSeason) => (
+              <SelectItem key={playerSeason.compositeId}>
+                {getPlayerSeasonString(playerSeason)}
               </SelectItem>
             ))}
           </Select>

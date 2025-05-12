@@ -1,147 +1,137 @@
-import { Player } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
-import { db } from "~/server/db";
 
-// Extend the response type to include a position property.
-type LineupResponse = Record<
+type SeasonStats = {
+  plateAppearances: number;
+  hits: number;
+  doubles: number;
+  triples: number;
+  homeruns: number;
+  walks: number;
+  hitByPitch: number;
+  intentionalWalks: number;
+  runs: number;
+  singles: number;
+};
+
+type LineupInput = Record<
   number,
-  { player: Player; isSelected: boolean; isUnassigned: boolean; position: string }
+  {
+    name: string;
+    data: SeasonStats | null;
+  }
 >;
 
-// Available positions (same as in your Prisma enum)
-const positions = [
-  "PITCHER",
-  "CATCHER",
-  "FIRST_BASE",
-  "SECOND_BASE",
-  "THIRD_BASE",
-  "LEFT_FIELD",
-  "CENTER_FIELD",
-  "RIGHT_FIELD",
-  "SHORTSTOP",
-  "DESIGNATED_HITTER",
-];
+type InputPayload = {
+  selectedLineup: LineupInput;
+  unassignedPlayers: Array<{
+    name: string;
+    data: SeasonStats | null;
+  }>;
+};
 
-function getRandomPosition(): string {
-  return positions[Math.floor(Math.random() * positions.length)]!;
+type PlayerSeason = {
+  player: {
+    firstName: string;
+    lastName: string;
+  };
+  season: SeasonStats | null;
+};
+
+type LineupResponseEntry = {
+  id: string;
+  playerSeason: PlayerSeason;
+  isSelected: boolean;
+  isUnassigned: boolean;
+};
+
+type LineupResponse = {
+  lineup: Record<number, LineupResponseEntry>;
+  expectedRuns: number;
+  message: string;
+};
+
+function parseName(fullName: string): { firstName: string; lastName: string } {
+  let [firstName, ...lastParts] = fullName.trim().split(" ");
+  const lastName = lastParts.join(" ") || "";
+  firstName = firstName || "Unknown";
+  return { firstName, lastName };
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+function makeId(firstName: string, lastName: string) {
+  return `${firstName}-${lastName}`.toLowerCase().replace(/\s+/g, "-");
+}
+
+function getRandomElement<T>(arr: T[]): T | undefined {
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled[0];
+}
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<LineupResponse | { message: string }>
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 10000));
+  const { selectedLineup, unassignedPlayers }: InputPayload = req.body;
 
-  // Expecting a selectedLineup (mapping spot to playerId or null) and an array of unassigned player IDs.
-  const { selectedLineup, unassignedPlayers }: { selectedLineup: Record<number, string | null>, unassignedPlayers: string[] } = req.body;
+  const lineup: Record<number, LineupResponseEntry> = {};
 
-  // Query players from your database.
-  const players = await db.player.findMany();
+  // Step 1: Track filled spots (1–9)
+  const filledSpots = new Set<number>();
 
-  // Build a mapping from player ID to a computed object that includes a full name.
-  const playerMap: Record<string, Player> = {};
-  players.forEach((player: Player) => {
-    playerMap[player.id] = {
-      id: player.id,
-      firstName: player.firstName,
-      lastName: player.lastName,
-      position: player.position,
-      battingHand: player.battingHand,
-      jerseyNumber: player.jerseyNumber,
-      salary: player.salary,
-      birthday: player.birthday,
+  for (let spot = 1; spot <= 9; spot++) {
+    const entry = selectedLineup[spot];
+    if (!entry || !entry.name) continue;
+
+    const { firstName, lastName } = parseName(entry.name);
+    const id = makeId(firstName, lastName);
+
+    lineup[spot] = {
+      id,
+      playerSeason: {
+        player: { firstName, lastName },
+        season: entry.data ?? null,
+      },
+      isSelected: true,
+      isUnassigned: false,
     };
-  });
 
-  // Determine which players have been explicitly selected.
-  const selectedPlayerIds = new Set(Object.values(selectedLineup).filter(Boolean));
-  // (This filtered array is available if you need it later.)
-  const selectedPlayersData = players.filter((player: Player) => selectedPlayerIds.has(player.id));
-
-  // Build the lineup response.
-  const lineup: LineupResponse = {};
-
-  // For players in the selected lineup, assign them to their respective spot with their DB position.
-  Object.entries(selectedLineup).forEach(([spot, playerId]) => {
-    if (playerId && playerMap[playerId]) {
-      const player = playerMap[playerId];
-      lineup[parseInt(spot)] = {
-        player: {
-          id: player.id,
-          firstName: player.firstName,
-          lastName: player.lastName,
-          position: player.position,
-          battingHand: player.battingHand,
-          jerseyNumber: player.jerseyNumber,
-          salary: player.salary,
-          birthday: player.birthday,
-        },
-        isSelected: true,
-        isUnassigned: false,
-        position: player.position,
-      };
-    }
-  });
-
-  // Find spots that haven't been assigned by the selected lineup.
-  const allSpots = Array.from({ length: 9 }, (_, i) => i + 1);
-  const emptySpots = allSpots.filter((spot) => !lineup[spot]);
-
-  // For players provided in the unassignedPlayers list, fill empty spots randomly.
-  const shuffledUnassigned = [...unassignedPlayers].sort(() => Math.random() - 0.5);
-  shuffledUnassigned.forEach((playerId) => {
-    if (emptySpots.length === 0) return;
-    if (playerMap[playerId]) {
-      const randomSpotIndex = Math.floor(Math.random() * emptySpots.length);
-      const randomSpot = emptySpots.splice(randomSpotIndex, 1)[0];
-      const player = playerMap[playerId];
-      lineup[randomSpot!] = {
-        player: {
-          id: player.id,
-          firstName: player.firstName,
-          lastName: player.lastName,
-          position: player.position,
-          battingHand: player.battingHand,
-          jerseyNumber: player.jerseyNumber,
-          salary: player.salary,
-          birthday: player.birthday,
-        },
-        isSelected: false,
-        isUnassigned: true,
-        position: getRandomPosition(),
-      };
-    }
-  });
-
-  // For any remaining empty spots, fill them with players that weren’t selected or marked as unassigned.
-  const remainingPlayers = players
-    .filter((player: Player) => !selectedPlayerIds.has(player.id) && !unassignedPlayers.includes(player.id))
-    .sort(() => Math.random() - 0.5);
-
-  let remainingPoolIndex = 0;
-  for (const spot of emptySpots) {
-    if (remainingPoolIndex < remainingPlayers.length) {
-      const player = remainingPlayers[remainingPoolIndex];
-      lineup[spot] = {
-        player: {
-          id: player!.id,
-          firstName: player!.firstName,
-          lastName: player!.lastName,
-          position: player!.position,
-          battingHand: player!.battingHand,
-          jerseyNumber: player!.jerseyNumber,
-          salary: player!.salary,
-          birthday: player!.birthday,
-        },
-        isSelected: false,
-        isUnassigned: false,
-        position: getRandomPosition(),
-      };
-      remainingPoolIndex++;
-    }
+    filledSpots.add(spot);
   }
 
-  return res.status(200).json({ message: "Lineup generated successfully", lineup, expectedRuns: 4.3 });
+  // Step 2: Fill remaining spots from unassigned players
+  const availableSpots = Array.from({ length: 9 }, (_, i) => i + 1).filter(
+    (s) => !filledSpots.has(s)
+  );
+
+  for (const player of unassignedPlayers) {
+    if (!player.name || availableSpots.length === 0) break;
+
+    const { firstName, lastName } = parseName(player.name);
+    const id = makeId(firstName, lastName);
+
+    const randomSpot = getRandomElement(availableSpots);
+    if (!randomSpot) continue;
+
+    lineup[randomSpot] = {
+      id,
+      playerSeason: {
+        player: { firstName, lastName },
+        season: player.data ?? null,
+      },
+      isSelected: false,
+      isUnassigned: true,
+    };
+
+    const index = availableSpots.indexOf(randomSpot);
+    if (index !== -1) availableSpots.splice(index, 1);
+  }
+
+  return res.status(200).json({
+    message: "Lineup generated successfully",
+    lineup,
+    expectedRuns: 7.5,
+  });
 }

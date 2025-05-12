@@ -1,11 +1,9 @@
 import { League } from "@prisma/client";
-import { useLeague } from "~/context/league-context";
+import { useLeague } from "~/context/leagueContext";
 import { getTeamName } from "~/utils/helper";
 
 const TeamLogo = ({ teamId, className }: { teamId: string; className?: string  }) => {
   const { league } = useLeague();
-
-  console.log("Test", getTeamName(league, teamId))
 
   return (
     <div className={`w-10 h-10 overflow-hidden ${className}`}>

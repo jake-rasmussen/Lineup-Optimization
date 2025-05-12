@@ -15,8 +15,8 @@ import {
 import { useState } from "react";
 import { Position, BattingHand, Player, League, Season } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
-import type { PlayerSeason } from "./buildController";
 import { formatBattingHand, formatPosition } from "~/utils/helper";
+import { PlayerSeason } from "~/data/types";
 
 type Props = {
   setSelectedPlayerSeasons: Dispatch<SetStateAction<PlayerSeason[]>>;
@@ -74,7 +74,7 @@ const CustomPlayerModal = ({ setSelectedPlayerSeasons }: Props) => {
     };
 
     const playerSeason: PlayerSeason = {
-      compositeId: `${id}-season`,
+      compositeId: `${firstName} ${lastName} - custom`,
       player: player as Player,
       season: {
         id: `season-${id}`,
@@ -92,6 +92,7 @@ const CustomPlayerModal = ({ setSelectedPlayerSeasons }: Props) => {
         playerId: id,
         league: League.CUSTOM,
       } as Season,
+      isCustom: true,
     };
 
     setSelectedPlayerSeasons((prev) => [...prev, playerSeason]);

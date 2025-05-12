@@ -67,7 +67,7 @@ export default function Home() {
                 }}
                 className="relative z-10 my-8 flex flex-wrap items-center justify-center gap-4"
               >
-                <img src="Field White.svg" alt="Field" style={{ width: "100%", height: "auto" }} className="max-w-40" />
+                <img src="/Field White.svg" alt="Field" style={{ width: "100%", height: "auto" }} className="max-w-40" />
               </motion.div>
               <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold md:text-4xl lg:text-7xl text-slate-300">
                 {"Ready to create your winning lineup?"

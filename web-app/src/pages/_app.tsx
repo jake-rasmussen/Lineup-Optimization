@@ -7,7 +7,7 @@ import { HeroUIProvider } from "@heroui/react";
 import { Poppins } from "@next/font/google";
 import { Toaster } from "react-hot-toast";
 import NavDrawer from "~/components/navDrawer";
-import { LeagueProvider } from "~/context/league-context";
+import { LeagueProvider } from "~/context/leagueContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -19,7 +19,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <HeroUIProvider>
       <LeagueProvider>
-        <div className={`${poppins.variable} font-sans flex w-full`}>
+        <div className={`${poppins.variable} font-sans flex w-full bg-black`}>
           <style jsx global>{`
         :root {
           --font-poppins: ${poppins.style.fontFamily};

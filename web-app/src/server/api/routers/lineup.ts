@@ -1,74 +1,54 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import type { Position } from "@prisma/client";
-
-// List of valid positions from your Prisma enum.
-const positions: Position[] = [
-  "PITCHER",
-  "CATCHER",
-  "FIRST_BASE",
-  "SECOND_BASE",
-  "THIRD_BASE",
-  "LEFT_FIELD",
-  "CENTER_FIELD",
-  "RIGHT_FIELD",
-  "SHORTSTOP",
-  "DESIGNATED_HITTER",
-];
+import { db } from "~/server/db";
 
 export const lineupRouter = createTRPCRouter({
   saveLineup: publicProcedure
     .input(
       z.object({
-        selectedLineup: z.record(z.string(), z.string()),
+        name: z.string().optional(),
+        selectedLineup: z.record(z.string(), z.any()),
+        expectedRuns: z.number().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const session = ctx.session;
+    .mutation(async ({ input }) => {
+      const { name = "Untitled Lineup", selectedLineup, expectedRuns } = input;
 
-      if (!session || !session.user.email) {
-        throw new Error("User not authenticated");
-      }
-      const userEmail = session.user.email;
-
-      const lineup = await ctx.db.lineup.create({
-        data: { userEmail },
+      await db.savedLineup.create({
+        data: {
+          name,
+          data: selectedLineup,
+          expectedRuns,
+        },
       });
 
-      for (const [spotStr, playerId] of Object.entries(input.selectedLineup)) {
-        const player = await ctx.db.player.findUnique({ where: { id: playerId } });
-        if (!player) {
-          throw new Error(`Player with id ${playerId} not found`);
-        }
-        
-        await ctx.db.lineupEntry.create({
-          data: {
-            lineupId: lineup.id,
-            playerId,
-            battingSpot: parseInt(spotStr),
-          },
-        });
-      }
-
-      return lineup;
+      return { success: true };
     }),
-  getSavedLineups: publicProcedure
-    .query(async ({ ctx }) => {
-      const session = ctx.session;
-      if (!session || !session.user.email) {
-        throw new Error("User not authenticated");
-      }
-      const userEmail = session.user.email;
+  getLineups: publicProcedure.query(async () => {
+    const lineups = await db.savedLineup.findMany({
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        name: true,
+        data: true,
+        expectedRuns: true,
+        createdAt: true,
+      },
+    });
 
-      return ctx.db.lineup.findMany({
-        where: { userEmail },
-        include: {
-          entries: {
-            include: {
-              player: true // this will include the nested Player data
-            }
-          }
-        }
+    return lineups;
+  }),
+  deleteLineup: publicProcedure
+    .input(
+      z.object({
+        id: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      await db.savedLineup.delete({
+        where: { id: input.id },
       });
+
+      return { success: true };
     }),
 });
