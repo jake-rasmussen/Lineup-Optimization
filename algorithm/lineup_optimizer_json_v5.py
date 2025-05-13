@@ -21,9 +21,8 @@ class LineupOptimizer:
         self.best_score = float('-inf')
         self.evaluated_lineups = 0
         
-        # Changed default top_n to 15
         self.top_lineups = []  # Will store (score, lineup) tuples
-        self.top_n = 15  # Changed from 1 to 15
+        self.top_n = 15  # Number of top lineups to keep track of
         
         # Validate constraints
         self._validate_constraints()
@@ -868,9 +867,7 @@ def parse_and_optimize_lineup(json_input, excel_file_path, method='exhaustive', 
 
 
 
-# This is the proper way to use multiprocessing in Python
 if __name__ == "__main__":
-    # Your test_input dictionary and main execution code here
     test_input = {
   "json_input": {
     "1": {
@@ -1047,7 +1044,6 @@ if __name__ == "__main__":
     
     print(f"\nExpected runs per game: {result['expected_runs']}")
     
-    # Updated print statement to use the standardized leadoff_info key
     print(f"Leadoff player: {result['leadoff_info']['leadoff_player']}")
     
     # Only print rank info if the leadoff wasn't constrained
