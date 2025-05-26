@@ -23,7 +23,7 @@ const PlayerTableALPB = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: Pr
       <TableHeader>
         <TableColumn>NAME</TableColumn>
         <TableColumn>POSITION</TableColumn>
-        <TableColumn>VIEW SEASON</TableColumn>
+        <TableColumn>VIEW STATS</TableColumn>
         <TableColumn>REMOVE</TableColumn>
       </TableHeader>
       <TableBody emptyContent={"No players selected."}>

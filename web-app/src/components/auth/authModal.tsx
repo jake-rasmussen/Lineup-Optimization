@@ -50,11 +50,10 @@ const AuthModal = () => {
     } else {
       toast.dismiss();
 
+      await upsertUser.mutateAsync({ email });
       onOpenChange();
       router.push("/build");
     }
-
-    await upsertUser.mutateAsync({ email });
 
     setLoading(false);
   }
@@ -72,11 +71,10 @@ const AuthModal = () => {
     } else {
       toast.dismiss();
 
+      await upsertUser.mutateAsync({ email });
       onOpenChange();
       router.push("/build");
     }
-    
-    await upsertUser.mutateAsync({ email });
 
     setLoading(false);
   }
