@@ -4,7 +4,7 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import { HeroUIProvider } from "@heroui/react";
-import { Poppins } from "@next/font/google";
+import { Poppins } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import NavDrawer from "~/components/navDrawer";
 import { LeagueProvider } from "~/context/leagueContext";

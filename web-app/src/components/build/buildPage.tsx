@@ -101,7 +101,7 @@ export default function BuildPage() {
     } catch (error: any) {
       console.error("Error submitting lineup:", error.message);
     } finally {
-      setIsLoading(false);
+      setTimeout(() => setIsLoading(false), 5000); 
     }
   };
 
@@ -111,7 +111,7 @@ export default function BuildPage() {
     unassignedPlayerSeasons: PlayerSeason[],
     selectedPlayerSeasons: PlayerSeason[]
   ) => {
-    setIsLoading(true);
+    // setIsLoading(true);
 
     const json_input: Record<number, { name: string; data: any }> = {};
 
@@ -181,7 +181,7 @@ export default function BuildPage() {
 
     console.log("PAYLOAD", payload);
 
-    setIsLoading(false);
+    // setIsLoading(false);
   };
 
   return (

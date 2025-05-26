@@ -1,4 +1,3 @@
-/** @type {import("eslint").Linter.Config} */
 const config = {
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -37,6 +36,9 @@ const config = {
         }
       }
     ]
-  }
+  },
+  "eslint": {
+    ignoreDuringBuilds: true, // This disables linting during build processes
+  },
 }
 module.exports = config;

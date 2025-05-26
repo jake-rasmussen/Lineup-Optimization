@@ -11,7 +11,7 @@ const PlayerSeasonDropdown = ({ season }: PropType) => {
     <Dropdown>
       <DropdownTrigger>
         <Button variant="flat" size="sm">
-          View Season
+          View Stats
         </Button>
       </DropdownTrigger>
       <DropdownMenu aria-label="Season Stats" className="p-2">
