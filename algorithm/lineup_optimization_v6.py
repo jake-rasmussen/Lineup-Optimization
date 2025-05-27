@@ -129,57 +129,138 @@ if __name__ == "__main__":
     # Test with 9 players (you currently only have 2)
     json_input = {
         "10": { 
-            "name": "Bryson Stott",
-            "data": {"pa": 506, "h": 124, "2b": 19, "3b": 2, "hr": 11,
-                     "sb": 0, "bb": 52, "hbp": 3, "ibb": 1},
+            "name": "Earle Combs",
+             "data": {
+                "pa": 6507,
+                "h": 1866,
+                "2b": 309,
+                "3b": 154,
+                "hr": 58,
+                "sb": 0,
+                "bb": 670,
+                "hbp": 17,
+                "ibb": 0
+            },
             "batting_hand": "LEFT"
         },
         "11": { 
-            "name": "Trea Turner",
-            "data": {"pa": 539, "h": 149, "2b": 25, "3b": 0, "hr": 21,
-                     "sb": 19, "bb": 27, "hbp": 6, "ibb": 0},
+            "name": "Mark Koenig",
+            "data": {
+                "pa": 4603,
+                "h": 1190,
+                "2b": 195,
+                "3b": 49,
+                "hr": 28,
+                "sb": 0,
+                "bb": 222,
+                "hbp": 11,
+                "ibb": 0
+            },
             "batting_hand": "RIGHT"
         },
         "12": { 
-            "name": "Bryce Harper",
-            "data": {"pa": 550, "h": 157, "2b": 42, "3b": 0, "hr": 30,
-                     "sb": 0, "bb": 65, "hbp": 2, "ibb": 11},
+            "name": "George Ruth",
+            "data": {
+                "pa": 10617,
+                "h": 2873,
+                "2b": 506,
+                "3b": 136,
+                "hr": 714,
+                "sb": 0,
+                "bb": 2062,
+                "hbp": 43,
+                "ibb": 0
+            },
             "batting_hand": "LEFT"
         },
         "13": { 
-            "name": "Kyle Schwarber",
-            "data": {"pa": 573, "h": 142, "2b": 22, "3b": 0, "hr": 38,
-                     "sb": 0, "bb": 102, "hbp": 5, "ibb": 4},
+            "name": "Anthony Lazzeri",
+            "data": {
+                "pa": 7303,
+                "h": 1840,
+                "2b": 334,
+                "3b": 115,
+                "hr": 178,
+                "sb": 0,
+                "bb": 869,
+                "hbp": 21,
+                "ibb": 0
+            },
             "batting_hand": "LEFT"
         },
         "14": { 
-            "name": "Nick Castellanos",
-            "data": {"pa": 659, "h": 154, "2b": 30, "3b": 4, "hr": 23,
-                     "sb": 6, "bb": 41, "hbp": 10, "ibb": 2},
+            "name": "Henry Gehrig",
+            "data": {
+                "pa": 9660,
+                "h": 2721,
+                "2b": 534,
+                "3b": 163,
+                "hr": 493,
+                "sb": 0,
+                "bb": 1508,
+                "hbp": 45,
+                "ibb": 0
+            },
             "batting_hand": "RIGHT"
         },
         "15": { 
-            "name": "Jacob Realmuto",
-            "data": {"pa": 380, "h": 101, "2b": 18, "3b": 1, "hr": 14,
-                     "sb": 0, "bb": 26, "hbp": 5, "ibb": 1},
+            "name": "Joseph Dugan",
+            "data": {
+                "pa": 5879,
+                "h": 1516,
+                "2b": 277,
+                "3b": 46,
+                "hr": 42,
+                "sb": 0,
+                "bb": 250,
+                "hbp": 42,
+                "ibb": 0
+            },
             "batting_hand": "RIGHT"
         },
         "16": { 
-            "name": "Max Kepler",
-            "data": {"pa": 399, "h": 93, "2b": 21, "3b": 1, "hr": 8,
-                     "sb": 1, "bb": 22, "hbp": 5, "ibb": 0},
+            "name": "Robert Meusel",
+            "data": {
+                "pa": 6028,
+                "h": 1693,
+                "2b": 368,
+                "3b": 95,
+                "hr": 156,
+                "sb": 0,
+                "bb": 375,
+                "hbp": 21,
+                "ibb": 0
+            },
             "batting_hand": "LEFT"
         },
         "17": { 
-            "name": "Alec Bohm",
-            "data": {"pa": 554, "h": 155, "2b": 44, "3b": 2, "hr": 15,
-                     "sb": 0, "bb": 38, "hbp": 6, "ibb": 2},
+            "name": "John Grabowski",
+            "data": {
+                "pa": 885,
+                "h": 206,
+                "2b": 25,
+                "3b": 8,
+                "hr": 3,
+                "sb": 0,
+                "bb": 47,
+                "hbp": 2,
+                "ibb": 0
+            },
             "batting_hand": "RIGHT"
         },
         "18": { 
-            "name": "Brandon Marsh",
-            "data": {"pa": 418, "h": 104, "2b": 17, "3b": 3, "hr": 16,
-                     "sb": 0, "bb": 50, "hbp": 2, "ibb": 0},
+            "name": "Waite Hoyt",
+            "data": {
+                "pa": 1419,
+                "h": 255,
+                "2b": 26,
+                "3b": 11,
+                "hr": 0,
+                "sb": 0,
+                "bb": 40,
+                "hbp": 1,
+                "ibb": 0
+            },
             "batting_hand": "LEFT"
         }
     }
