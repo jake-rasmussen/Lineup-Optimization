@@ -10,7 +10,7 @@ def calculate_brp(stats1, stats2, stats3, stats4):
         float: The calculated BRP value
     """
     # Extract stats for each player
-    """
+
     Apa, Ah, A2b, A3b, Ahr = stats1["pa"], stats1["h"], stats1["2b"], stats1["3b"], stats1["hr"]
     Asb, Abb, Ahbp, Aibb = stats1["sb"], stats1["bb"], stats1["hbp"], stats1["ibb"]
     
@@ -22,7 +22,7 @@ def calculate_brp(stats1, stats2, stats3, stats4):
     
     Dpa, Dh, D2b, D3b, Dhr = stats4["pa"], stats4["h"], stats4["2b"], stats4["3b"], stats4["hr"]
     Dsb, Dbb, Dhbp, Dibb = stats4["sb"], stats4["bb"], stats4["hbp"], stats4["ibb"]
-    """
+
     """
     example inputs: 
         A = Bryce Harper
@@ -32,17 +32,7 @@ def calculate_brp(stats1, stats2, stats3, stats4):
         Stats are from the excel sheet
         This is to be changed, these stats should be taken as an argument for a method
     """
-    Apa, Ah, A2b, A3b, Ahr = 370, 96, 18, 1, 5
-    Asb, Abb, Ahbp, Aibb = 9, 38, 11, 0
-    
-    Bpa, Bh, B2b, B3b, Bhr = 597, 163, 44, 2, 24
-    Bsb, Bbb, Bhbp, Bibb = 2, 55, 5, 5
-    
-    Cpa, Ch, C2b, C3b, Chr = 385, 80, 22, 3, 6
-    Csb, Cbb, Chbp, Cibb = 24, 29, 1, 2
-    
-    Dpa, Dh, D2b, D3b, Dhr = 494, 121, 25, 1, 22
-    Dsb, Dbb, Dhbp, Dibb = 5, 79, 0, 10
+
         
     def SUM(*args):
         total = 0
@@ -719,5 +709,3 @@ def calculate_brp(stats1, stats2, stats3, stats4):
     
     return BRP
 
-stats1, stats2, stats3, stats4 = [], [], [], []  # Placeholder for stats data
-brp = calculate_brp(stats1,stats2,stats3,stats4)
