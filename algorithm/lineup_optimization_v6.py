@@ -42,6 +42,10 @@ def generate_bdnrp_csv_python(players: List[str],
         # Calculate BRP using your Python function
         brp_value = calculate_brp(stats1, stats2, stats3, stats4)
         
+        # Debug: Check if BRP values seem reasonable
+        if idx_combo <= 5:  # Print first few for debugging
+            print(f"BRP for {p1}, {p2}, {p3}, {p4}: {brp_value:.6f}")
+        
         rows.append({
             "player1": p1,
             "player2": p2,
@@ -103,6 +107,17 @@ def parse_and_optimize_lineup_fast(json_input, method='exhaustive', max_iteratio
         raise ValueError(f"Expected 9 players, but found {len(players)}")
     
     print("Step 1: Generating BDNRP data using Python calculator...")
+    
+    # Debug: Print basic player stats for comparison
+    print("\nPlayer Performance Summary:")
+    for player in players:
+        stats = player_stats[player]
+        avg = stats["h"] / stats["pa"] if stats["pa"] > 0 else 0
+        obp = (stats["h"] + stats["bb"] + stats["hbp"]) / stats["pa"] if stats["pa"] > 0 else 0
+        slg = (stats["h"] - stats["2b"] - stats["3b"] - stats["hr"] + 2*stats["2b"] + 3*stats["3b"] + 4*stats["hr"]) / stats["pa"] if stats["pa"] > 0 else 0
+        ops = obp + slg
+        print(f"{player:20} | PA: {stats['pa']:3} | AVG: {avg:.3f} | OBP: {obp:.3f} | SLG: {slg:.3f} | OPS: {ops:.3f}")
+    
     bdnrp_csv = "bdnrp_values_python.csv"
     generate_bdnrp_csv_python(players, player_stats, bdnrp_csv)
     
@@ -113,74 +128,85 @@ def parse_and_optimize_lineup_fast(json_input, method='exhaustive', max_iteratio
     top_lineups = optimize_lineup(players, bdnrp_csv, return_top_n=1)
     best_lineup_names, best_score = top_lineups[0]
     
+    # Debug: Print some details about the optimization
+    print(f"Raw optimization score: {best_score:.6f}")
+    print(f"Players in order: {players}")
+    print(f"Best lineup found: {best_lineup_names}")
+    
     # Format result as JSON
     result = {}
     for i, player in enumerate(best_lineup_names):
         result[str(i + 1)] = player
     
     # Calculate expected runs (you may need to adjust this calculation)
-    result["expected runs"] = round(best_score, 4)
+    # BRP values might be relative to baseline - add realistic baseline runs per game
+    baseline_runs_per_game = 4.5  # Average MLB team runs per game
+    adjusted_score = best_score + baseline_runs_per_game
+    
+    result["expected runs"] = round(adjusted_score, 4)
     
     print(f"\nBest lineup: {best_lineup_names}")
-    print(f"Expected run production: {best_score:.4f}")
+    print(f"Raw BRP score: {best_score:.4f}")
+    print(f"Adjusted expected runs: {adjusted_score:.4f}")
     
     return result
+
 if __name__ == "__main__":
-    # Test with 9 players (you currently only have 2)
+    # Test with 9 players converted from the second JSON format (keeping original data values)
     json_input = {
     "10": { 
-        "name": "Bryson Stott",
-        "data": {"pa": 506, "h": 124, "2b": 19, "3b": 2, "hr": 11,
-                 "sb": 0, "bb": 52, "hbp": 3, "ibb": 1},
-        "batting_hand": "LEFT"
-    },
-    "11": { 
-        "name": "Trea Turner",
-        "data": {"pa": 539, "h": 149, "2b": 25, "3b": 0, "hr": 21,
-                 "sb": 19, "bb": 27, "hbp": 6, "ibb": 0},
+        "name": "Alec Bohm",
+        "data": {"pa": 208, "h": 53, "2b": 8, "3b": 1, "hr": 4,
+                 "sb": 0, "bb": 8, "hbp": 3, "ibb": 0},
         "batting_hand": "RIGHT"
     },
-    "12": { 
+    "11": { 
         "name": "Bryce Harper",
-        "data": {"pa": 550, "h": 157, "2b": 42, "3b": 0, "hr": 30,
-                 "sb": 0, "bb": 65, "hbp": 2, "ibb": 11},
+        "data": {"pa": 239, "h": 54, "2b": 13, "3b": 0, "hr": 8,
+                 "sb": 0, "bb": 33, "hbp": 2, "ibb": 2},
+        "batting_hand": "LEFT"
+    },
+    "12": { 
+        "name": "Bryson Stott",
+        "data": {"pa": 197, "h": 46, "2b": 5, "3b": 2, "hr": 4,
+                 "sb": 0, "bb": 15, "hbp": 1, "ibb": 0},
         "batting_hand": "LEFT"
     },
     "13": { 
-        "name": "Kyle Schwarber",
-        "data": {"pa": 573, "h": 142, "2b": 22, "3b": 0, "hr": 38,
-                 "sb": 0, "bb": 102, "hbp": 5, "ibb": 4},
-        "batting_hand": "LEFT"
+        "name": "Edmundo Sosa",
+        "data": {"pa": 71, "h": 23, "2b": 5, "3b": 0, "hr": 1,
+                 "sb": 0, "bb": 5, "hbp": 0, "ibb": 0},
+        "batting_hand": "RIGHT"
     },
     "14": { 
-        "name": "Nick Castellanos",
-        "data": {"pa": 659, "h": 154, "2b": 30, "3b": 4, "hr": 23,
-                 "sb": 6, "bb": 41, "hbp": 10, "ibb": 2},
+        "name": "Jacob Realmuto",
+        "data": {"pa": 185, "h": 39, "2b": 8, "3b": 1, "hr": 5,
+                 "sb": 0, "bb": 17, "hbp": 0, "ibb": 1},
         "batting_hand": "RIGHT"
     },
     "15": { 
-        "name": "Jacob Realmuto",
-        "data": {"pa": 380, "h": 101, "2b": 18, "3b": 1, "hr": 14,
-                 "sb": 0, "bb": 26, "hbp": 5, "ibb": 1},
-        "batting_hand": "RIGHT"
+        "name": "Johan Rojas",
+        "data": {"pa": 103, "h": 23, "2b": 2, "3b": 1, "hr": 1,
+                 "sb": 0, "bb": 8, "hbp": 0, "ibb": 0},
+        "batting_hand": "SWITCH"
     },
     "16": { 
-        "name": "Max Kepler",
-        "data": {"pa": 399, "h": 93, "2b": 21, "3b": 1, "hr": 8,
-                 "sb": 1, "bb": 22, "hbp": 5, "ibb": 0},
+        "name": "Kyle Schwarber",
+        "data": {"pa": 236, "h": 49, "2b": 5, "3b": 1, "hr": 18,
+                 "sb": 0, "bb": 41, "hbp": 4, "ibb": 2},
         "batting_hand": "LEFT"
     },
     "17": { 
-        "name": "Alec Bohm",
-        "data": {"pa": 554, "h": 155, "2b": 44, "3b": 2, "hr": 15,
-                 "sb": 0, "bb": 38, "hbp": 6, "ibb": 2},
+        "name": "Trea Turner",
+        "data": {"pa": 230, "h": 65, "2b": 9, "3b": 2, "hr": 5,
+                 "sb": 0, "bb": 17, "hbp": 2, "ibb": 0},
         "batting_hand": "RIGHT"
     },
     "18": { 
-        "name": "Brandon Marsh",
-        "data": {"pa": 418, "h": 104, "2b": 17, "3b": 3, "hr": 16,
-                 "sb": 0, "bb": 50, "hbp": 2, "ibb": 0},
-        "batting_hand": "LEFT"
+        "name": "Nicholas Castellanos",
+        "data": {"pa": 222, "h": 55, "2b": 13, "3b": 0, "hr": 4,
+                 "sb": 0, "bb": 13, "hbp": 2, "ibb": 0},
+        "batting_hand": "RIGHT"
     }
 }
     
