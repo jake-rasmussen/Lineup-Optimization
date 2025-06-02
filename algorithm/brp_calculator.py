@@ -23,7 +23,15 @@ def calculate_brp(stats1, stats2, stats3, stats4):
     Dpa, Dh, D2b, D3b, Dhr = stats4["pa"], stats4["h"], stats4["2b"], stats4["3b"], stats4["hr"]
     Dsb, Dbb, Dhbp, Dibb = stats4["sb"], stats4["bb"], stats4["hbp"], stats4["ibb"]
     """
-
+    """
+    example inputs: 
+        A = Bryce Harper
+        B = Trea Turner
+        C = Juan Soto
+        D = Anthony Rendon
+        Stats are from the excel sheet
+        This is to be changed, these stats should be taken as an argument for a method
+    """
     Apa, Ah, A2b, A3b, Ahr = 370, 96, 18, 1, 5
     Asb, Abb, Ahbp, Aibb = 9, 38, 11, 0
     
@@ -41,54 +49,7 @@ def calculate_brp(stats1, stats2, stats3, stats4):
         for num in args:
             total += num
         return total
-    """
-    example inputs: 
-        A = Bryce Harper
-        B = Trea Turner
-        C = Juan Soto
-        D = Anthony Rendon
-        Stats are from the excel sheet
-        This is to be changed, these stats should be taken as an argument for a method
-    """
-    Apa = 370
-    Ah = 96
-    A2b = 18
-    A3b = 1
-    Ahr = 5
-    Asb = 9
-    Abb = 38
-    Ahbp = 11
-    Aibb = 0
 
-    Bpa = 597
-    Bh = 163
-    B2b = 44
-    B3b = 2
-    Bhr = 24
-    Bsb = 2
-    Bbb = 55
-    Bhbp = 5
-    Bibb = 5
-
-    Cpa = 385
-    Ch = 80
-    C2b = 22
-    C3b = 3
-    Chr = 6
-    Csb = 24
-    Cbb = 29
-    Chbp = 1
-    Cibb = 2
-
-    Dpa = 494
-    Dh = 121
-    D2b = 25
-    D3b = 1
-    Dhr = 22
-    Dsb = 5
-    Dbb = 79
-    Dhbp = 0
-    Dibb = 10
     """
     Plus Factors, GDP, FC, ADV Runner, Pop Up TODO: find formula for all, for now using what is on excel
     """
