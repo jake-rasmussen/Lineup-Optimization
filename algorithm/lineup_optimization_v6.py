@@ -156,58 +156,58 @@ if __name__ == "__main__":
     # Test with 9 players converted from the second JSON format (keeping original data values)
     json_input = {
     "10": { 
-        "name": "Alec Bohm",
-        "data": {"pa": 208, "h": 53, "2b": 8, "3b": 1, "hr": 4,
-                 "sb": 0, "bb": 8, "hbp": 3, "ibb": 0},
+        "name": "Andy Pages",
+        "data": {"pa": 641, "h": 149, "2b": 29, "3b": 2, "hr": 22,
+                 "sb": 0, "bb": 39, "hbp": 9, "ibb": 0},
         "batting_hand": "RIGHT"
     },
     "11": { 
-        "name": "Bryce Harper",
-        "data": {"pa": 239, "h": 54, "2b": 13, "3b": 0, "hr": 8,
-                 "sb": 0, "bb": 33, "hbp": 2, "ibb": 2},
-        "batting_hand": "LEFT"
+        "name": "Teoscar Hernández",
+        "data": {"pa": 4019, "h": 974, "2b": 206, "3b": 14, "hr": 202,
+                 "sb": 0, "bb": 283, "hbp": 31, "ibb": 8},
+        "batting_hand": "RIGHT"
     },
     "12": { 
-        "name": "Bryson Stott",
-        "data": {"pa": 197, "h": 46, "2b": 5, "3b": 2, "hr": 4,
-                 "sb": 0, "bb": 15, "hbp": 1, "ibb": 0},
+        "name": "Shohei Ohtani",
+        "data": {"pa": 3842, "h": 939, "2b": 176, "3b": 40, "hr": 243,
+                 "sb": 0, "bb": 464, "hbp": 22, "ibb": 74},
         "batting_hand": "LEFT"
     },
     "13": { 
-        "name": "Edmundo Sosa",
-        "data": {"pa": 71, "h": 23, "2b": 5, "3b": 0, "hr": 1,
-                 "sb": 0, "bb": 5, "hbp": 0, "ibb": 0},
+        "name": "Markus Betts",
+        "data": {"pa": 6493, "h": 1665, "2b": 376, "3b": 40, "hr": 279,
+                 "sb": 0, "bb": 699, "hbp": 50, "ibb": 33},
         "batting_hand": "RIGHT"
     },
     "14": { 
-        "name": "Jacob Realmuto",
-        "data": {"pa": 185, "h": 39, "2b": 8, "3b": 1, "hr": 5,
-                 "sb": 0, "bb": 17, "hbp": 0, "ibb": 1},
+        "name": "Enrique Hernández",
+        "data": {"pa": 4014, "h": 854, "2b": 194, "3b": 15, "hr": 127,
+                 "sb": 0, "bb": 351, "hbp": 27, "ibb": 12},
         "batting_hand": "RIGHT"
     },
     "15": { 
-        "name": "Johan Rojas",
-        "data": {"pa": 103, "h": 23, "2b": 2, "3b": 1, "hr": 1,
-                 "sb": 0, "bb": 8, "hbp": 0, "ibb": 0},
-        "batting_hand": "SWITCH"
+        "name": "Frederick Freeman",
+        "data": {"pa": 8914, "h": 2322, "2b": 522, "3b": 32, "hr": 352,
+                 "sb": 0, "bb": 1029, "hbp": 109, "ibb": 139},
+        "batting_hand": "LEFT"
     },
     "16": { 
-        "name": "Kyle Schwarber",
-        "data": {"pa": 236, "h": 49, "2b": 5, "3b": 1, "hr": 18,
-                 "sb": 0, "bb": 41, "hbp": 4, "ibb": 2},
+        "name": "Dalton Rushing",
+        "data": {"pa": 17, "h": 4, "2b": 1, "3b": 0, "hr": 0,
+                 "sb": 0, "bb": 1, "hbp": 0, "ibb": 0},
         "batting_hand": "LEFT"
     },
     "17": { 
-        "name": "Trea Turner",
-        "data": {"pa": 230, "h": 65, "2b": 9, "3b": 2, "hr": 5,
-                 "sb": 0, "bb": 17, "hbp": 2, "ibb": 0},
+        "name": "Miguel Rojas",
+        "data": {"pa": 3922, "h": 931, "2b": 179, "3b": 11, "hr": 51,
+                 "sb": 0, "bb": 246, "hbp": 42, "ibb": 16},
         "batting_hand": "RIGHT"
     },
     "18": { 
-        "name": "Nicholas Castellanos",
-        "data": {"pa": 222, "h": 55, "2b": 13, "3b": 0, "hr": 4,
-                 "sb": 0, "bb": 13, "hbp": 2, "ibb": 0},
-        "batting_hand": "RIGHT"
+        "name": "Thomas Edman",
+        "data": {"pa": 2725, "h": 654, "2b": 131, "3b": 21, "hr": 67,
+                 "sb": 0, "bb": 169, "hbp": 34, "ibb": 4},
+        "batting_hand": "SWITCH"
     }
 }
     
