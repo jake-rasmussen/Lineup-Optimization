@@ -6,7 +6,7 @@ import pandas as pd
 import json
 from pathlib import Path
 from typing import List, Dict, Any
-from brp_calculator import calculate_brp  # Import your BRP calculator
+from brp_calculator_v1 import calculate_brp  # Import your BRP calculator
 
 def generate_bdnrp_csv_python(players: List[str],
                               player_stats: Dict[str, Dict[str, int]],
