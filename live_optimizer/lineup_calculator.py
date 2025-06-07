@@ -1,5 +1,5 @@
 """
-Fast Lineup Optimizer
+Fast Lineup Calculator
 High-performance lineup optimization using NumPy tensors and Numba JIT compilation.
 """
 
