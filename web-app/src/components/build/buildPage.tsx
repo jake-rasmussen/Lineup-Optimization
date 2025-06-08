@@ -10,7 +10,7 @@ export default function BuildPage() {
   const [lineup, setLineup] = useState<Record<number, DisplayLineupPlayer>>();
   const [expectedRuns, setExpectedRuns] = useState<number>();
 
-  const handleSubmitMock = async (
+  const handleSubmit = async (
     lineupInput: Record<number, string | undefined>, // batting spot -> compositeId
     unassignedPlayerSeasons: PlayerSeason[],
     selectedPlayerSeasons: PlayerSeason[]
@@ -41,16 +41,15 @@ export default function BuildPage() {
           name: `${playerSeason.player.firstName} ${playerSeason.player.lastName}`,
           data: playerSeason.season
             ? {
-              plateAppearances: playerSeason.season.plateAppearances,
-              hits: playerSeason.season.hits,
-              doubles: playerSeason.season.doubles,
-              triples: playerSeason.season.triples,
-              homeruns: playerSeason.season.homeruns,
-              walks: playerSeason.season.walks,
-              hitByPitch: playerSeason.season.hitByPitch,
-              intentionalWalks: playerSeason.season.intentionalWalks,
-              singles: playerSeason.season.singles,
-              runs: playerSeason.season.runs,
+              pa: playerSeason.season.plateAppearances,
+              h: playerSeason.season.hits,
+              "2b": playerSeason.season.doubles,
+              "3b": playerSeason.season.triples,
+              hr: playerSeason.season.homeruns,
+              bb: playerSeason.season.walks,
+              hbp: playerSeason.season.hitByPitch,
+              ibb: playerSeason.season.intentionalWalks,
+              sb: 0,
             }
             : null,
         };
@@ -63,24 +62,32 @@ export default function BuildPage() {
           name: `${playerSeason.player.firstName} ${playerSeason.player.lastName}`,
           data: playerSeason.season
             ? {
-              plateAppearances: playerSeason.season.plateAppearances,
-              hits: playerSeason.season.hits,
-              doubles: playerSeason.season.doubles,
-              triples: playerSeason.season.triples,
-              homeruns: playerSeason.season.homeruns,
-              walks: playerSeason.season.walks,
-              hitByPitch: playerSeason.season.hitByPitch,
-              intentionalWalks: playerSeason.season.intentionalWalks,
-              singles: playerSeason.season.singles,
-              runs: playerSeason.season.runs,
+              pa: playerSeason.season.plateAppearances,
+              h: playerSeason.season.hits,
+              "2b": playerSeason.season.doubles,
+              "3b": playerSeason.season.triples,
+              hr: playerSeason.season.homeruns,
+              bb: playerSeason.season.walks,
+              hbp: playerSeason.season.hitByPitch,
+              ibb: playerSeason.season.intentionalWalks,
+              sb: 0,
             }
             : null,
         }));
 
-      const response = await fetch("/api/submit-lineup", {
+      const json_input = {
+        ...selectedLineup,
+        ...Object.fromEntries(unassignedPlayers.map((p, i) => [i + 10, p]))
+      };
+
+      const response = await fetch("http://backend:8000/optimize-lineup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ selectedLineup, unassignedPlayers }),
+        body: JSON.stringify({
+          json_input,
+          method: "exhaustive",        // optional: you can remove or customize this
+          max_iterations: 1000         // optional: also customizable
+        }),
       });
 
       if (!response.ok) {
@@ -94,94 +101,33 @@ export default function BuildPage() {
         throw new Error("Invalid server response: missing lineup or expectedRuns");
       }
 
-      setLineup(data.lineup);
-      setExpectedRuns(data.expectedRuns);
+      const displayLineup: Record<number, DisplayLineupPlayer> = {};
 
-      createJSON(lineupInput, unassignedPlayerSeasons, selectedPlayerSeasons); 
+      for (const [spotStr, name] of Object.entries(data.lineup)) {
+        const spot = parseInt(spotStr);
+        if (isNaN(spot)) continue;
+
+        const match = selectedPlayerSeasons.find(
+          (ps) => `${ps.player.firstName} ${ps.player.lastName}` === name
+        );
+
+        if (!match) continue;
+
+        displayLineup[spot] = {
+          id: match.compositeId,
+          playerSeason: match,
+          isSelected: true,
+          isUnassigned: false,
+        };
+      }
+
+      setLineup(displayLineup);
+      setExpectedRuns(data.expectedRuns);
     } catch (error: any) {
       console.error("Error submitting lineup:", error.message);
     } finally {
-      setTimeout(() => setIsLoading(false), 5000); 
+      setTimeout(() => setIsLoading(false), 5000);
     }
-  };
-
-  // Used to get JSON object to run algorithm locally
-  const createJSON = async (
-    lineupInput: Record<number, string | undefined>,
-    unassignedPlayerSeasons: PlayerSeason[],
-    selectedPlayerSeasons: PlayerSeason[]
-  ) => {
-    // setIsLoading(true);
-
-    const json_input: Record<number, { name: string; data: any }> = {};
-
-    // Fixed positions: keys 1–9.
-    for (let pos = 1; pos <= 9; pos++) {
-      const compositeId = lineupInput[pos];
-      if (compositeId) {
-        const ps = selectedPlayerSeasons.find((ps) => ps.compositeId === compositeId);
-        if (ps) {
-          const { player, season } = ps;
-          json_input[pos] = {
-            name: `${player.firstName} ${player.lastName}`,
-            data: season
-              ? {
-                plateAppearances: season.plateAppearances,
-                runs: season.runs,
-                hits: season.hits,
-                singles: season.singles,
-                doubles: season.doubles,
-                triples: season.triples,
-                homeruns: season.homeruns,
-                walks: season.walks,
-                hitByPitch: season.hitByPitch,
-                intentionalWalks: season.intentionalWalks,
-              }
-              : null,
-          };
-        } else {
-          json_input[pos] = { name: "", data: null };
-        }
-      } else {
-        json_input[pos] = { name: "", data: null };
-      }
-    }
-
-    // Unassigned players: keys starting at 10.
-    let key = 10;
-    for (const ps of unassignedPlayerSeasons) {
-      const { player, season } = ps;
-      json_input[key] = {
-        name: `${player.firstName} ${player.lastName}`,
-        data: season
-          ? {
-            plateAppearances: season.plateAppearances,
-            runs: season.runs,
-            hits: season.hits,
-            singles: season.singles,
-            doubles: season.doubles,
-            triples: season.triples,
-            homeruns: season.homeruns,
-            walks: season.walks,
-            hitByPitch: season.hitByPitch,
-            intentionalWalks: season.intentionalWalks,
-          }
-          : null,
-      };
-      key++;
-    }
-
-    const payload = {
-      json_input,
-      excel_file_path:
-        "C:\\Users\\Jake Rasmussen\\Desktop\\Developer\\Lineup-Optimization\\web-server\\LO_Test.xlsx",
-      method: "exhaustive",
-      max_iterations: 1000,
-    };
-
-    console.log("PAYLOAD", payload);
-
-    // setIsLoading(false);
   };
 
   return (
@@ -202,7 +148,7 @@ export default function BuildPage() {
             </div>
           ) : (
             <div className="flex w-full min-h-screen justify-center items-center">
-              <BuildController handleSubmit={handleSubmitMock} />
+              <BuildController handleSubmit={handleSubmit} />
             </div>
           )}
         </>

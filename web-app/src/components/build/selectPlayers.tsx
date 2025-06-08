@@ -61,7 +61,7 @@ const SelectMLBPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: P
     newStats: Season[]
   ) => {
     if (!(keys instanceof Set)) return;
-    if (keys.size > 9) return toast.error("You cannot select more than 9 players.");
+    if (keys.size > 9) return toast.error("9 players already added");
 
     if (selectedPlayerSeasons.some((playerSeason) => playerSeason.player.id === newPlayerId)) return;
 

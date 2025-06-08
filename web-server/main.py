@@ -25,7 +25,7 @@ app.add_middleware(
 )
 
 # Import the function from your optimizer file
-from lineup_optimizer_json_v2 import parse_and_optimize_lineup
+from lineup_optimizer import parse_and_optimize_lineup_fast
 
 class PlayerData(BaseModel):
     name: str
@@ -33,7 +33,6 @@ class PlayerData(BaseModel):
 
 class LineupRequest(BaseModel):
     json_input: Dict[str, Optional[PlayerData]]
-    excel_file_path: str
     method: Optional[str] = "exhaustive"
     max_iterations: Optional[int] = 1000
 
@@ -41,14 +40,15 @@ class LineupRequest(BaseModel):
 async def optimize_lineup(request: LineupRequest):
     logging.debug(f"Received request with data: {request}")
     try:
-        # Reformat the json_input if necessary
         players_json = {
             key: {"name": value.name, "data": value.data} if value else None 
             for key, value in request.json_input.items()
         }
-        logging.debug(f"Formatted player JSON for processing: {players_json}")
-        result = parse_and_optimize_lineup(
-            players_json, request.excel_file_path, request.method, request.max_iterations
+
+        result = parse_and_optimize_lineup_fast(
+            players_json,
+            method=request.method,
+            max_iterations=request.max_iterations
         )
         return result
     except Exception as e:

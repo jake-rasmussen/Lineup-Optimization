@@ -1,4 +1,4 @@
-import { Button, Card, CardBody, CardFooter, CardHeader } from "@heroui/react";
+import { Button, Card, CardBody, CardFooter, CardHeader, Divider } from "@heroui/react";
 import { useState } from "react";
 import AssignLineup from "./assignLineup";
 import ConfirmLineup from "./confirmLineup";
@@ -46,7 +46,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
 
 
   return (
-    <Card className="h-[75vh] w-full p-4 m-10 max-w-7xl shadow-blue-200 shadow-xl border">
+    <Card className="h-[90vh] w-full p-4 m-10 max-w-7xl shadow-blue-200 shadow-xl border">
       {step === 0 && (
         <CardHeader>
           <div>
@@ -78,6 +78,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           </div>
         </CardHeader>
       )}
+      <Divider />
       <CardBody className="max-h-[70vh] overflow-y-scroll flex items-center">
         {step === 0 && (
           <>
@@ -113,6 +114,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           />
         )}
       </CardBody>
+      <Divider />
       <CardFooter className="flex flex-row gap-2">
         <Button
           color="danger"
