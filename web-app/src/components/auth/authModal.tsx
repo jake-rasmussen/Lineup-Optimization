@@ -35,9 +35,10 @@ const AuthModal = () => {
   const [password, setPassword] = useState("");
 
   const [selected, setSelected] = useState<Key>("signin");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   async function logIn() {
+    setIsLoading(true);
     toast.dismiss();
     toast.loading("Signing in...");
 
@@ -46,7 +47,7 @@ const AuthModal = () => {
       console.error(error);
 
       toast.dismiss();
-      toast.error("Error...");
+      toast.error(error.message);
     } else {
       toast.dismiss();
 
@@ -55,10 +56,11 @@ const AuthModal = () => {
       router.push("/build");
     }
 
-    setLoading(false);
+    setIsLoading(false);
   }
 
   async function signUp() {
+    setIsLoading(true);
     toast.dismiss();
     toast.loading("Signing up...");
 
@@ -67,7 +69,7 @@ const AuthModal = () => {
       console.error(error);
 
       toast.dismiss();
-      toast.error("Error...");
+      toast.error(error.message);
     } else {
       toast.dismiss();
 
@@ -76,12 +78,12 @@ const AuthModal = () => {
       router.push("/build");
     }
 
-    setLoading(false);
+    setIsLoading(false);
   }
 
   return (
     <>
-      <Button color="primary" onPress={onOpen}>
+      <Button color="primary" onPress={onOpen} isLoading={isLoading}>
         Log in
       </Button>
 
@@ -112,6 +114,7 @@ const AuthModal = () => {
                     onValueChange={setPassword}
                   />
                 </div>
+                <p className="text-red-500">{}</p>
               </ModalBody>
               <ModalFooter>
                 <Button color="danger" variant="flat" onPress={onClose}>
@@ -119,11 +122,11 @@ const AuthModal = () => {
                 </Button>
                 {
                   selected === "signin" ? (
-                    <Button color="primary" onPress={logIn} isDisabled={loading}>
+                    <Button color="primary" onPress={logIn} isDisabled={isLoading} isLoading={isLoading}>
                       Sign in
                     </Button>
                   ) : (
-                    <Button color="primary" onPress={signUp} isDisabled={loading}>
+                    <Button color="primary" onPress={signUp} isDisabled={isLoading} isLoading={isLoading}>
                       Sign up
                     </Button>
                   )

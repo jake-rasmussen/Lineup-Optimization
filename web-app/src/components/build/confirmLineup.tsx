@@ -14,7 +14,7 @@ const ConfirmLineup = ({ lineup, selectedPlayerSeasons, unassignedPlayers }: Pro
   return (
     <div className="space-y-8 w-full">
       <div>
-        <h3 className="text-lg font-semibold mb-4">Final Lineup</h3>
+        <h3 className="text-lg font-semibold mb-2">Assigned Players</h3>
         <Table aria-label="Final Lineup Table">
           <TableHeader>
             <TableColumn className="w-10">Batting Spot</TableColumn>

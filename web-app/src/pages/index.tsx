@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import AuthModal from "~/components/auth/authModal";
-import { Button, Navbar, Progress } from "@heroui/react";
+import { Button, Progress } from "@heroui/react";
 import Link from "next/link";
 import { createClient } from "utils/supabase/component";
 import { motion } from "framer-motion";
-import Image from "next/image";
-import InfiniteMovingCards from "~/aceternity-ui/infinite-moving-cards";
 import RotatingTeamLogos from "~/aceternity-ui/infinite-moving-cards";
 
 export default function Home() {
   const supabase = createClient();
 
-  const [loading, setLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [signedIn, setSignedIn] = useState<boolean>(false);
 
   useEffect(() => {
@@ -26,7 +24,7 @@ export default function Home() {
       }
     }
 
-    fetchUser().then(() => setLoading(false));
+    fetchUser().then(() => setIsLoading(false));
   }, [supabase]);
 
   return (
@@ -37,9 +35,9 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       {
-        loading ? (
+        isLoading ? (
           <div className="flex flex-col gap-4 min-h-screen w-full items-center justify-center">
-            <h2 className="text-xl">Welcome!</h2>
+            <h2 className="text-xl text-white">Welcome!</h2>
             <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
           </div>
         ) : (

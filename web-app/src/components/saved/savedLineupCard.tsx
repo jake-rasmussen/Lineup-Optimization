@@ -86,7 +86,7 @@ const SavedLineupCard = ({ lineup }: PropType) => {
             <TableHeader>
               <TableColumn className="w-10 text-center">Spot</TableColumn>
               <TableColumn>Player</TableColumn>
-              <TableColumn>View</TableColumn>
+              <TableColumn>Applied Stats</TableColumn>
             </TableHeader>
             <TableBody>
               {spots.map((spot) => {
