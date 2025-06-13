@@ -12,7 +12,7 @@ def main():
     """
     # Test JSON data with positional constraints
     # Positions 1-9: Locked to specific batting order positions
-    # Positions 11-18: Can be optimized into available spots
+    # Positions 10-18: Can be optimized into available spots
     json_input = {
         # CONSTRAINED PLAYERS (Fixed in specific batting positions)
         "1": {  # Locked in leadoff spot
