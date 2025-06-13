@@ -1,4 +1,6 @@
 """
+lineup_optimizer.py
+
 BRP CSV Generator and Lineup Optimizer
 Uses pure Python BRP calculations for maximum speed and efficiency.
 """
