@@ -1,7 +1,7 @@
 """
 lineup_optimizer.py
 
-BRP CSV Generator and Lineup Optimizer
+BRP CSV Generator and Lineup Optimizer with Handedness Constraints
 Uses pure Python BRP calculations for maximum speed and efficiency.
 """
 import pandas as pd
@@ -66,10 +66,10 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
                                    method: str = 'exhaustive', 
                                    max_iterations: int = 1000) -> Dict[str, Any]:
     """
-    Parse JSON input and optimize lineup using fast Python calculations.
+    Parse JSON input and optimize lineup using fast Python calculations with handedness constraints.
     
     Args:
-        json_input: Dictionary containing player data in positions 1-18
+        json_input: Dictionary containing player data in positions 1-18 and handedness constraints
         method: Optimization method (currently supports 'exhaustive')
         max_iterations: Maximum iterations for optimization
         
@@ -79,11 +79,11 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
     Raises:
         ValueError: If exactly 9 players are not found in the input
     """
-    handedness_constraint = {}
-    if "max_consecutive_right" in json_input:
-        handedness_constraint["max_consecutive_right"] = json_input["max_consecutive_right"]
-    if "max_consecutive_left" in json_input:
-        handedness_constraint["max_consecutive_left"] = json_input["max_consecutive_left"]
+    # Extract handedness constraints
+    max_consecutive_left = json_input.get("max_consecutive_left", 0)
+    max_consecutive_right = json_input.get("max_consecutive_right", 0)
+    
+    print(f"Handedness constraints - Max consecutive left: {max_consecutive_left}, Max consecutive right: {max_consecutive_right}")
     
     players = []
     player_stats = {}
@@ -99,26 +99,45 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
             players.append(player_name)
             player_stats[player_name] = player_data["data"]
             constraints[player_name] = pos
-            player_handedness[player_name] = player_data.get("batting_hand", "R")
+            handedness = player_data.get("batting_hand", "RIGHT").upper()
+            player_handedness[player_name] = handedness
 
     if len(players) != 9:
         raise ValueError(f"Expected 9 players, but found {len(players)}")
     
     print("Generating BDNRP data using Python calculator...")
     
-    _print_player_summary(players, player_stats)
+    _print_player_summary(players, player_stats, player_handedness)
     
     bdnrp_csv = "bdnrp_values_python.csv"
     generate_bdnrp_csv_python(players, player_stats, bdnrp_csv)
     
-    print("Running fast optimization...")
+    print("Running fast optimization with constraints...")
     from lineup_calculator import optimize_lineup
     
-    top_lineups = optimize_lineup(players, bdnrp_csv, return_top_n=1)
+    # Create handedness list in player order
+    handedness_list = [player_handedness[player] for player in players]
+    
+    top_lineups = optimize_lineup(
+        players, 
+        bdnrp_csv, 
+        return_top_n=1,
+        player_handedness=handedness_list,
+        max_consecutive_left=max_consecutive_left,
+        max_consecutive_right=max_consecutive_right
+    )
+    
+    if not top_lineups:
+        raise ValueError("No valid lineups found with the given constraints")
+    
     best_lineup_names, best_score = top_lineups[0]
     
     print(f"Raw optimization score: {best_score:.6f}")
     print(f"Best lineup found: {best_lineup_names}")
+    
+    # Verify the lineup satisfies constraints
+    _verify_lineup_constraints(best_lineup_names, player_handedness, 
+                             max_consecutive_left, max_consecutive_right)
     
     # Format result
     result = {}
@@ -137,16 +156,61 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
     return result
 
 
-def _print_player_summary(players: List[str], player_stats: Dict[str, Dict[str, int]]) -> None:
-    """Print a summary of player performance statistics."""
+def _verify_lineup_constraints(lineup: List[str], 
+                             player_handedness: Dict[str, str],
+                             max_consecutive_left: int,
+                             max_consecutive_right: int) -> None:
+    """Verify that the lineup satisfies handedness constraints."""
+    if max_consecutive_left == 0 and max_consecutive_right == 0:
+        return
+    
+    # Check consecutive handedness (including wraparound)
+    extended_lineup = lineup + lineup
+    consecutive_left = 0
+    consecutive_right = 0
+    max_left_found = 0
+    max_right_found = 0
+    
+    for i in range(18):
+        player = extended_lineup[i]
+        handedness = player_handedness[player]
+        
+        if handedness == 'LEFT':
+            consecutive_left += 1
+            consecutive_right = 0
+            max_left_found = max(max_left_found, consecutive_left)
+        elif handedness == 'RIGHT':
+            consecutive_right += 1
+            consecutive_left = 0
+            max_right_found = max(max_right_found, consecutive_right)
+        else:  # SWITCH
+            consecutive_left = 0
+            consecutive_right = 0
+    
+    print(f"Lineup verification - Max consecutive left found: {max_left_found}, Max consecutive right found: {max_right_found}")
+    
+    if max_consecutive_left > 0 and max_left_found > max_consecutive_left:
+        raise ValueError(f"Lineup violates left-handed constraint: {max_left_found} > {max_consecutive_left}")
+    if max_consecutive_right > 0 and max_right_found > max_consecutive_right:
+        raise ValueError(f"Lineup violates right-handed constraint: {max_right_found} > {max_consecutive_right}")
+
+
+def _print_player_summary(players: List[str], 
+                         player_stats: Dict[str, Dict[str, int]],
+                         player_handedness: Dict[str, str]) -> None:
+    """Print a summary of player performance statistics and handedness."""
     print("\nPlayer Performance Summary:")
+    print(f"{'Player':<20} | {'Hand':<6} | {'PA':<3} | {'AVG':<5} | {'OBP':<5} | {'SLG':<5} | {'OPS':<5}")
+    print("-" * 75)
+    
     for player in players:
         stats = player_stats[player]
+        handedness = player_handedness[player]
         avg = stats["h"] / stats["pa"] if stats["pa"] > 0 else 0
         obp = (stats["h"] + stats["bb"] + stats["hbp"]) / stats["pa"] if stats["pa"] > 0 else 0
         slg = (stats["h"] - stats["2b"] - stats["3b"] - stats["hr"] + 2*stats["2b"] + 3*stats["3b"] + 4*stats["hr"]) / stats["pa"] if stats["pa"] > 0 else 0
         ops = obp + slg
-        print(f"{player:20} | PA: {stats['pa']:3} | AVG: {avg:.3f} | OBP: {obp:.3f} | SLG: {slg:.3f} | OPS: {ops:.3f}")
+        print(f"{player:<20} | {handedness:<6} | {stats['pa']:3} | {avg:.3f} | {obp:.3f} | {slg:.3f} | {ops:.3f}")
 
 
 def parse_json_input(json_data: str) -> Dict[str, Any]:
@@ -154,10 +218,10 @@ def parse_json_input(json_data: str) -> Dict[str, Any]:
     Parse JSON string input and validate structure.
     
     Args:
-        json_data: JSON string containing player data
+        json_data: JSON string containing player data and constraints
         
     Returns:
-        Parsed dictionary with player information
+        Parsed dictionary with player information and constraints
         
     Raises:
         json.JSONDecodeError: If JSON is malformed
@@ -183,10 +247,25 @@ def parse_json_input(json_data: str) -> Dict[str, Any]:
                 if stat not in player_data["data"]:
                     raise ValueError(f"Player {player_data['name']} missing required stat: {stat}")
             
+            # Validate handedness if provided
+            if "batting_hand" in player_data:
+                handedness = player_data["batting_hand"].upper()
+                if handedness not in ["LEFT", "RIGHT", "SWITCH"]:
+                    raise ValueError(f"Invalid batting_hand '{player_data['batting_hand']}' for player {player_data['name']}. Must be LEFT, RIGHT, or SWITCH.")
+            
             found_players += 1
     
     if found_players != 9:
         raise ValueError(f"Expected exactly 9 players, found {found_players}")
+    
+    # Validate handedness constraints if provided
+    if "max_consecutive_left" in data:
+        if not isinstance(data["max_consecutive_left"], int) or data["max_consecutive_left"] < 0:
+            raise ValueError("max_consecutive_left must be a non-negative integer")
+    
+    if "max_consecutive_right" in data:
+        if not isinstance(data["max_consecutive_right"], int) or data["max_consecutive_right"] < 0:
+            raise ValueError("max_consecutive_right must be a non-negative integer")
     
     return data
 
@@ -196,7 +275,7 @@ def optimize_from_json(json_input: str) -> str:
     Main entry point for optimizing lineup from JSON input.
     
     Args:
-        json_input: JSON string containing player data
+        json_input: JSON string containing player data and constraints
         
     Returns:
         JSON string with optimized lineup results
