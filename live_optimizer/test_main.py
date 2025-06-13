@@ -277,17 +277,17 @@ def validate_output_format(parsed_result):
                 print(f"❌ Position {i} is not a string")
                 return False
         
-        # Check that "average runs per game" exists and is a number
-        if "average runs per game" not in parsed_result:
-            print("❌ Missing 'average runs per game'")
+        # Check that "expected runs" exists and is a number
+        if "expected runs" not in parsed_result:
+            print("❌ Missing 'expected runs'")
             return False
         
-        if not isinstance(parsed_result["average runs per game"], (int, float)):
-            print("❌ 'average runs per game' is not a number")
+        if not isinstance(parsed_result["expected runs"], (int, float)):
+            print("❌ 'expected runs' is not a number")
             return False
         
         # Check that there are no extra fields (except error/status in error cases)
-        expected_keys = {str(i) for i in range(1, 10)} | {"average runs per game"}
+        expected_keys = {str(i) for i in range(1, 10)} | {"expected runs"}
         actual_keys = set(parsed_result.keys())
         extra_keys = actual_keys - expected_keys - {"error", "status"}
         

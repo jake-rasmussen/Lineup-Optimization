@@ -26,7 +26,7 @@ def optimize_lineup_from_json(json_input: str) -> str:
             "2": "player_name", 
             ...
             "9": "player_name",
-            "average runs per game": float
+            "expected runs": float
         }
     """
     try:
@@ -41,8 +41,7 @@ def optimize_lineup_from_json(json_input: str) -> str:
         for i in range(1, 10):
             output[str(i)] = result[str(i)]
         
-        # Change "expected runs" to "average runs per game"
-        output["average runs per game"] = result["expected runs"]
+        output["expected runs"] = result["expected runs"]
         
         return json.dumps(output, indent=2)
         
