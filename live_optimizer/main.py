@@ -27,6 +27,10 @@ def optimize_lineup_from_json(json_input: str) -> str:
             "9": "player_name",
             "expected runs": float
         }
+        
+    Position Rules:
+        - Positions 1-9: Players locked to specific batting positions
+        - Positions 10-18: Players that can be optimized anywhere
     """
     try:
         # Parse and validate input
@@ -40,6 +44,7 @@ def optimize_lineup_from_json(json_input: str) -> str:
         for i in range(1, 10):
             output[str(i)] = result[str(i)]
         
+        # Keep expected runs field
         output["expected runs"] = result["expected runs"]
         
         return json.dumps(output, indent=2)

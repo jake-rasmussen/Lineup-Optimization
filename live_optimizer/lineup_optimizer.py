@@ -94,9 +94,9 @@ def parse_positional_constraints(json_input: Dict[str, Any]) -> Tuple[Dict[str, 
             constrained_positions[batting_position] = player_name
             taken_positions.add(batting_position)
     
-    # Process unconstrained players (positions 11-18)
+    # Process unconstrained players (positions 10-18)
     unconstrained_players = []
-    for pos in range(11, 19):
+    for pos in range(10, 19):
         pos_key = str(pos)
         if pos_key in json_input and json_input[pos_key] is not None:
             player_data = json_input[pos_key]
@@ -208,7 +208,7 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
     
     print(f"\nBest lineup: {best_lineup_names}")
     print(f"Raw BRP score: {best_score:.4f}")
-    print(f"Adjusted expected runs: {adjusted_score:.4f}")
+    print(f"Expected runs: {adjusted_score:.4f}")
     
     return result
 
@@ -311,8 +311,8 @@ def parse_json_input(json_data: str) -> Dict[str, Any]:
     constrained_players = 0
     unconstrained_players = 0
     
-    # Check positions 1-9 (constrained) and 11-18 (unconstrained)
-    valid_positions = [str(i) for i in range(1, 10)] + [str(i) for i in range(11, 19)]
+    # Check positions 1-9 (constrained) and 10-18 (unconstrained)
+    valid_positions = [str(i) for i in range(1, 10)] + [str(i) for i in range(10, 19)]
     
     for pos in valid_positions:
         if pos in data and data[pos] is not None:
@@ -348,7 +348,7 @@ def parse_json_input(json_data: str) -> Dict[str, Any]:
         if str(pos) in data and data[str(pos)] is not None:
             constrained_names.add(data[str(pos)]["name"])
     
-    for pos in range(11, 19):
+    for pos in range(10, 19):
         if str(pos) in data and data[str(pos)] is not None:
             unconstrained_names.add(data[str(pos)]["name"])
     
@@ -370,13 +370,19 @@ def parse_json_input(json_data: str) -> Dict[str, Any]:
 
 def optimize_from_json(json_input: str) -> str:
     """
-    Main entry point for optimizing lineup from JSON input.
+    Entry point for optimizing lineup from JSON input.
     
     Args:
         json_input: JSON string containing player data and constraints
         
     Returns:
-        JSON string with optimized lineup results
+        JSON string with optimized lineup results in format:
+        {
+            "1": "player_name",
+            ...
+            "9": "player_name", 
+            "expected runs": float
+        }
     """
     parsed_data = parse_json_input(json_input)
     result = parse_and_optimize_lineup_fast(parsed_data)
