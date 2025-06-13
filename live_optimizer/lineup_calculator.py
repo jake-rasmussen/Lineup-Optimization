@@ -1,7 +1,7 @@
 """
 lineup_calculator.py
 
-Fast Lineup Calculator with Handedness Constraints
+Fast Lineup Calculator with Handedness and Positional Constraints
 High-performance lineup optimization using NumPy tensors and Numba JIT compilation.
 """
 
@@ -118,6 +118,44 @@ def check_handedness_constraints(lineup_indices: np.ndarray,
     return True
 
 
+def create_constrained_lineups(constrained_positions: Dict[int, int],
+                              unconstrained_players: List[int],
+                              available_positions: List[int]) -> List[np.ndarray]:
+    """
+    Generate all valid lineups considering positional constraints.
+    
+    Args:
+        constrained_positions: Dict mapping batting position (0-8) to player index
+        unconstrained_players: List of player indices that can be moved
+        available_positions: List of batting positions (0-8) available for unconstrained players
+        
+    Returns:
+        List of complete lineup arrays
+    """
+    if len(unconstrained_players) != len(available_positions):
+        raise ValueError(f"Mismatch: {len(unconstrained_players)} unconstrained players but {len(available_positions)} available positions")
+    
+    # Generate all permutations of unconstrained players in available positions
+    unconstrained_perms = list(itertools.permutations(unconstrained_players))
+    
+    lineups = []
+    for perm in unconstrained_perms:
+        # Create complete lineup
+        lineup = np.full(9, -1, dtype=np.int8)
+        
+        # Place constrained players
+        for pos, player_idx in constrained_positions.items():
+            lineup[pos] = player_idx
+        
+        # Place unconstrained players
+        for i, player_idx in enumerate(perm):
+            lineup[available_positions[i]] = player_idx
+        
+        lineups.append(lineup)
+    
+    return lineups
+
+
 @nb.njit(fastmath=True, parallel=True)
 def _exhaustive_best(perms: np.ndarray, T: np.ndarray) -> Tuple[int, float]:
     """
@@ -145,9 +183,12 @@ def optimize_lineup(players: List[str],
                    return_top_n: int = 15,
                    player_handedness: Optional[List[str]] = None,
                    max_consecutive_left: int = 0,
-                   max_consecutive_right: int = 0) -> List[Tuple[List[str], float]]:
+                   max_consecutive_right: int = 0,
+                   constrained_positions: Optional[Dict[int, int]] = None,
+                   unconstrained_players: Optional[List[int]] = None,
+                   available_positions: Optional[List[int]] = None) -> List[Tuple[List[str], float]]:
     """
-    Optimize batting lineup using exhaustive search with JIT compilation and handedness constraints.
+    Optimize batting lineup using exhaustive search with positional and handedness constraints.
     
     Args:
         players: List of player names
@@ -156,6 +197,9 @@ def optimize_lineup(players: List[str],
         player_handedness: List of handedness for each player ('LEFT', 'RIGHT', 'SWITCH')
         max_consecutive_left: Maximum consecutive left-handed batters (0 = no constraint)
         max_consecutive_right: Maximum consecutive right-handed batters (0 = no constraint)
+        constrained_positions: Dict mapping batting position (0-8) to player index
+        unconstrained_players: List of player indices that can be moved
+        available_positions: List of batting positions (0-8) available for optimization
         
     Returns:
         List of tuples containing (lineup_names, score) sorted by score descending
@@ -163,29 +207,42 @@ def optimize_lineup(players: List[str],
     print("\n=== Running optimize_lineup ===")
     T = load_bdnrp_tensor(bdnrp_csv, players)
 
-    print("Generating all permutations (9! = 362880)")
-    all_perms = list(itertools.permutations(np.arange(9), 9))
+    # Handle positional constraints
+    if constrained_positions is not None and unconstrained_players is not None and available_positions is not None:
+        print(f"Positional constraints: {len(constrained_positions)} fixed positions, {len(unconstrained_players)} players to optimize")
+        print(f"Fixed positions: {list(constrained_positions.keys())}")
+        print(f"Available positions for optimization: {available_positions}")
+        
+        # Generate constrained lineups
+        all_lineups = create_constrained_lineups(constrained_positions, unconstrained_players, available_positions)
+        total_lineups = len(all_lineups)
+        print(f"Generated {total_lineups} constrained lineups")
+    else:
+        print("Generating all permutations (9! = 362880)")
+        all_lineups = [np.array(perm, dtype=np.int8) for perm in itertools.permutations(np.arange(9), 9)]
+        total_lineups = len(all_lineups)
+        print(f"Generated {total_lineups} unconstrained lineups")
     
-    # Filter permutations based on handedness constraints
+    # Filter lineups based on handedness constraints
     if (player_handedness and 
         (max_consecutive_left > 0 or max_consecutive_right > 0)):
         print(f"Applying handedness constraints: max_left={max_consecutive_left}, max_right={max_consecutive_right}")
-        valid_perms = []
-        for perm in all_perms:
-            perm_array = np.array(perm, dtype=np.int8)
-            if check_handedness_constraints(perm_array, player_handedness, 
+        valid_lineups = []
+        for lineup in all_lineups:
+            if check_handedness_constraints(lineup, player_handedness, 
                                           max_consecutive_left, max_consecutive_right):
-                valid_perms.append(perm)
-        perms = np.array(valid_perms, dtype=np.int8)
-        print(f"Valid permutations after handedness filtering: {len(valid_perms)}")
+                valid_lineups.append(lineup)
+        all_lineups = valid_lineups
+        print(f"Valid lineups after handedness filtering: {len(all_lineups)}")
     else:
-        perms = np.array(all_perms, dtype=np.int8)
         print(f"No handedness constraints applied")
     
-    print(f"Permutations array shape: {perms.shape}")
+    if len(all_lineups) == 0:
+        raise ValueError("No valid lineups found with the given constraints")
 
-    if len(perms) == 0:
-        raise ValueError("No valid lineups found with the given handedness constraints")
+    # Convert to numpy array for scoring
+    perms = np.array(all_lineups, dtype=np.int8)
+    print(f"Final permutations array shape: {perms.shape}")
 
     print("Scoring lineups...")
     scores = np.empty(len(perms), dtype=np.float32)
