@@ -66,11 +66,13 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) =>
             label="Enter max amount of consecutive righties"
             minValue={0}
             maxValue={9}
+            isDisabled
           />
           <NumberInput
             label="Enter max amount of consecutive lefties"
             minValue={0}
             maxValue={9}
+            isDisabled
           />
         </div>
         <p className="text-sm text-gray-500">No constraints will be added if no number is selected</p>

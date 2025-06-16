@@ -80,13 +80,13 @@ export default function BuildPage() {
         ...Object.fromEntries(unassignedPlayers.map((p, i) => [i + 10, p]))
       };
 
-      const response = await fetch("http://backend:8000/optimize-lineup", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/optimize-lineup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           json_input,
-          method: "exhaustive",        // optional: you can remove or customize this
-          max_iterations: 1000         // optional: also customizable
+          method: "exhaustive",
+          max_iterations: 1000
         }),
       });
 
@@ -96,6 +96,8 @@ export default function BuildPage() {
       }
 
       const data = await response.json();
+
+      console.log("DATA", data);
 
       if (!data.lineup || !data.expectedRuns) {
         throw new Error("Invalid server response: missing lineup or expectedRuns");
