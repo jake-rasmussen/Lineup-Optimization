@@ -169,6 +169,8 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
     
     # Convert constraints to use player indices
     constrained_positions_idx = {pos: player_to_idx[player] for pos, player in constrained_positions.items()}
+    print("Final constraints (index-based):", constrained_positions_idx)
+    
     unconstrained_players_idx = [player_to_idx[player] for player in unconstrained_players]
     
     top_lineups = optimize_lineup(

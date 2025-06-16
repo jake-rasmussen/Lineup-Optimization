@@ -45,7 +45,7 @@ def optimize_lineup_from_json(json_input: str) -> str:
             output[str(i)] = result[str(i)]
         
         # Keep expected runs field
-        output["expected runs"] = result["expected runs"]
+        output["expectedRuns"] = result["expected runs"]
         
         return json.dumps(output, indent=2)
         
