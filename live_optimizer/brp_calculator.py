@@ -1,4 +1,6 @@
 """
+brp_calculator.py
+
 Baserunner-Dependent Net Run Production (BRP) Calculator
 Calculates BRP values for 4-player batting sequences using precise statistical formulas.
 """

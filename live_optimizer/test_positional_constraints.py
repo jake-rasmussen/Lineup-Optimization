@@ -1,5 +1,5 @@
 """
-test_lineup_optimizer.py
+test_positional_constraints.py
 
 Test script for the lineup optimizer using sample Dodgers data with positional and handedness constraints.
 """
@@ -15,19 +15,19 @@ def main():
     # Positions 10-18: Can be optimized into available spots
     json_input = {
         # CONSTRAINED PLAYERS (Fixed in specific batting positions)
-        "16": {  # Locked in leadoff spot
+        "1": {  # Locked in leadoff spot
             "name": "Shohei Ohtani",
             "data": {"pa": 3842, "h": 939, "2b": 176, "3b": 40, "hr": 243,
                      "sb": 0, "bb": 464, "hbp": 22, "ibb": 74},
             "batting_hand": "LEFT"
         },
-        "17": {  # Locked in 3rd spot
+        "3": {  # Locked in 3rd spot
             "name": "Markus Betts",
             "data": {"pa": 6493, "h": 1665, "2b": 376, "3b": 40, "hr": 279,
                      "sb": 0, "bb": 699, "hbp": 50, "ibb": 33},
             "batting_hand": "RIGHT"
         },
-        "18": {  # Locked in cleanup spot
+        "4": {  # Locked in cleanup spot
             "name": "Frederick Freeman",
             "data": {"pa": 8914, "h": 2322, "2b": 522, "3b": 32, "hr": 352,
                      "sb": 0, "bb": 1029, "hbp": 109, "ibb": 139},
@@ -35,37 +35,37 @@ def main():
         },
         
         # UNCONSTRAINED PLAYERS (Can be optimized into positions 2, 5, 6, 7, 8, 9)
-        "10": { 
+        "11": { 
             "name": "Andy Pages",
             "data": {"pa": 641, "h": 149, "2b": 29, "3b": 2, "hr": 22,
                      "sb": 0, "bb": 39, "hbp": 9, "ibb": 0},
             "batting_hand": "RIGHT"
         },
-        "11": { 
+        "12": { 
             "name": "Teoscar Hernandez",
             "data": {"pa": 4019, "h": 974, "2b": 206, "3b": 14, "hr": 202,
                      "sb": 0, "bb": 283, "hbp": 31, "ibb": 8},
             "batting_hand": "RIGHT"
         },
-        "12": { 
+        "13": { 
             "name": "Enrique Hernandez",
             "data": {"pa": 4014, "h": 854, "2b": 194, "3b": 15, "hr": 127,
                      "sb": 0, "bb": 351, "hbp": 27, "ibb": 12},
             "batting_hand": "RIGHT"
         },
-        "13": { 
+        "14": { 
             "name": "Dalton Rushing",
             "data": {"pa": 17, "h": 4, "2b": 1, "3b": 0, "hr": 0,
                      "sb": 0, "bb": 1, "hbp": 0, "ibb": 0},
             "batting_hand": "LEFT"
         },
-        "14": { 
+        "15": { 
             "name": "Miguel Rojas",
             "data": {"pa": 3922, "h": 931, "2b": 179, "3b": 11, "hr": 51,
                      "sb": 0, "bb": 246, "hbp": 42, "ibb": 16},
             "batting_hand": "RIGHT"
         },
-        "15": { 
+        "16": { 
             "name": "Thomas Edman",
             "data": {"pa": 2725, "h": 654, "2b": 131, "3b": 21, "hr": 67,
                      "sb": 0, "bb": 169, "hbp": 34, "ibb": 4},
@@ -97,7 +97,7 @@ def main():
             print(f"  Position {pos}: {player_data['name']} ({player_data['batting_hand']})")
     
     print("\nUnconstrained Players (Can be optimized):")
-    for pos in range(10, 19):
+    for pos in range(11, 19):
         if str(pos) in json_input and json_input[str(pos)]:
             player_data = json_input[str(pos)]
             print(f"  {player_data['name']} ({player_data['batting_hand']})")
@@ -151,7 +151,7 @@ def main():
     print("-" * 50)
     
     json_input_unconstrained = {}
-    player_counter = 10
+    player_counter = 11
     
     # Move all players to unconstrained positions
     for pos in range(1, 19):
@@ -166,7 +166,7 @@ def main():
     try:
         result_unconstrained = parse_and_optimize_lineup_fast(json_input_unconstrained)
         print("✅ Unconstrained optimization successful!")
-        print(f"Average runs per game (unconstrained): {result_unconstrained['average runs per game']}")
+        print(f"Expected Runs (unconstrained): {result_unconstrained['expected runs']}")
         print("This may have a different (potentially higher) score since all positions can be optimized.")
         
         print("\nUnconstrained Optimal Order:")
