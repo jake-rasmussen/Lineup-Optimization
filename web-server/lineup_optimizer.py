@@ -204,7 +204,7 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
         result[str(i + 1)] = player
     
     # Calculate expected runs with baseline adjustment
-    baseline_runs_per_game = 94.5
+    baseline_runs_per_game = 4.5
     adjusted_score = (best_score + baseline_runs_per_game) * 1.5
     result["expected runs"] = round(adjusted_score, 4)
     
