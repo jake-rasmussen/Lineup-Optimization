@@ -197,7 +197,7 @@ const CustomPlayerModal = ({ setSelectedPlayerSeasons }: Props) => {
                     maxValue={80}
                   />
                   <NumberInput
-                    label="Unintention Bases on Balls"
+                    label="Unintentional Bases on Balls"
                     value={season.walks}
                     onChange={(val) => handleChange("walks", val)}
                     minValue={0}
