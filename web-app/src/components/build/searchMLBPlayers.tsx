@@ -35,7 +35,7 @@ export default function SearchMLBPlayers({ setUnsavedPlayerSeasons }: PropType) 
     setFetchedPlayerSeasons([]);
 
     try {
-      const players = await searchPlayerByName(query) as Player[];
+      const players = await searchPlayerByName(query) as any as Player[];
       const hitters = players.filter((player: Player) => player.position !== Position.PITCHER);
 
       const results: PlayerSeason[] = [];
@@ -98,10 +98,10 @@ export default function SearchMLBPlayers({ setUnsavedPlayerSeasons }: PropType) 
               return acc;
             }, new Map<string, { player: Player; seasons: PlayerSeason[] }>())
           ).map(([playerId, { player, seasons }]) => (
-            <AccordionItem key={playerId} title={`${player.firstName} ${player.lastName}`}>
+            <AccordionItem key={playerId} title={`${player.fullName}`}>
               <div className="p-4 border rounded space-y-2">
                 <div className="flex justify-between items-center">
-                  <h3 className="text-xl font-bold">{player.firstName} {player.lastName}</h3>
+                  <h3 className="text-xl font-bold">{player.fullName}</h3>
                 </div>
                 <Table
                   selectionMode="multiple"

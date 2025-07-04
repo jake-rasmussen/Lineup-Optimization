@@ -13,13 +13,13 @@ const PlayerCardModal = ({ player, isDisabled }: PropType) => {
   return (
     <>
       <Button onPress={onOpen} size="sm" isDisabled={isDisabled}>View Player</Button>
-    
+
       <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="center" size="3xl">
         <ModalContent>
           {(onClose) => (
             <>
               <ModalHeader>
-                {player.firstName} {player.lastName}
+                {player.fullName}
               </ModalHeader>
               <ModalBody>
                 <PlayerCard

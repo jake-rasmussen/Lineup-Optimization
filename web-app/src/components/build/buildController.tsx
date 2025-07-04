@@ -46,7 +46,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
 
 
   return (
-    <Card className="h-[90vh] w-full p-4 m-10 max-w-7xl shadow-blue-200 shadow-xl border">
+    <Card className="h-[90vh] w-full p-4 m-10 max-w-7xl min-w-[1000px] shadow-blue-200 shadow-xl border">
       {step === 0 && (
         <CardHeader>
           <div>
@@ -110,7 +110,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <ConfirmLineup
             lineup={lineup}
             selectedPlayerSeasons={selectedPlayerSeasons}
-            unassignedPlayers={unassignedPlayerIds.map(entry => `${entry.player.firstName} ${entry.player.lastName}`)}
+            unassignedPlayers={unassignedPlayerIds.map(entry => `${entry.player.fullName}`)}
           />
         )}
       </CardBody>

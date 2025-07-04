@@ -122,8 +122,7 @@ export const alpbRouter = createTRPCRouter({
       const mapped = filtered.map((p: any) => {
         const player = {
           id: p.playerlinkid,
-          firstName: p.firstname,
-          lastName: p.lastname,
+          fullName: p.firstname + " " + p.lastname,
           position: getPosition(p.position ?? "DH"),
           battingHand: getBattingHand(p.bats ?? "R"),
           jerseyNumber: p.jersey ? parseInt(p.jersey) : null,

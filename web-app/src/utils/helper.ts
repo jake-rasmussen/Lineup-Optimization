@@ -77,7 +77,7 @@ export const getPlayerSeasonCompositeId = (
   if (!season) return player.id;
 
   const teamName = season.teamName || "Unknown";
-  return `${player.firstName} ${player.lastName} - ${teamName} ${season.year}`;
+  return `${player.fullName} - ${teamName} ${season.year}`;
 };
 
 export const getSeasonSelectKey = (season: Season) =>
@@ -94,9 +94,9 @@ export const getPlayerSeasonString = (playerSeason?: PlayerSeason) => {
     } = playerSeason;
 
     if (playerSeason.season?.year === 9999) {
-      return `${playerSeason.player.firstName.replace(/&apos;/g, "'")} ${player.lastName.replace(/&apos;/g, "'")} `;
+      return `${playerSeason.player.fullName.replace(/&apos;/g, "'")}`;
     } else {
-      return `${playerSeason.player.firstName.replace(/&apos;/g, "'")} ${player.lastName.replace(/&apos;/g, "'")} ${isCustom ? "- Custom player" : `${season?.teamName} ${season?.year ? season?.year : ""}`}`;
+      return `${playerSeason.player.fullName} ${isCustom ? "- Custom Player" : `${season?.teamName} ${season?.year ? season?.year : ""}`}`;
     }
   }
 }

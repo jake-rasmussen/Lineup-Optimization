@@ -53,7 +53,7 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
         return [
           spot,
           {
-            name: `${p.firstName} ${p.lastName}`,
+            name: `${p.fullName}`,
             data: season
               ? {
                 plateAppearances: season.plateAppearances,

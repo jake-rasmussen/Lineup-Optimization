@@ -38,7 +38,7 @@ export default function BuildPage() {
         }
 
         selectedLineup[parseInt(spot)] = {
-          name: `${playerSeason.player.firstName} ${playerSeason.player.lastName}`,
+          name: `${playerSeason.player.fullName}`,
           data: playerSeason.season
             ? {
               pa: playerSeason.season.plateAppearances,
@@ -59,7 +59,7 @@ export default function BuildPage() {
       const unassignedPlayers = unassignedPlayerSeasons
         .filter((ps) => !assignedCompositeIds.has(ps.compositeId))
         .map((playerSeason) => ({
-          name: `${playerSeason.player.firstName} ${playerSeason.player.lastName}`,
+          name: `${playerSeason.player.fullName}`,
           data: playerSeason.season
             ? {
               pa: playerSeason.season.plateAppearances,
@@ -97,8 +97,6 @@ export default function BuildPage() {
 
       const data = await response.json();
 
-      console.log("DATA", data);
-
       if (!data.lineup || !data.expectedRuns) {
         throw new Error("Invalid server response: missing lineup or expectedRuns");
       }
@@ -110,7 +108,7 @@ export default function BuildPage() {
         if (isNaN(spot)) continue;
 
         const match = selectedPlayerSeasons.find(
-          (ps) => `${ps.player.firstName} ${ps.player.lastName}` === name
+          (ps) => `${ps.player.fullName}` === name
         );
 
         if (!match) continue;
@@ -149,7 +147,7 @@ export default function BuildPage() {
               <FinalLineup lineup={lineup} expectedRuns={expectedRuns} />
             </div>
           ) : (
-            <div className="flex w-full min-h-screen justify-center items-center">
+            <div className="flex w-full min-h-screen justify-center items-center overflow-y-scroll">
               <BuildController handleSubmit={handleSubmit} />
             </div>
           )}
