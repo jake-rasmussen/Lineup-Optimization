@@ -59,7 +59,7 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) =>
           </Select>
         ))}
       </div>
-      <Divider />
+      {/* <Divider />
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-4">
           <NumberInput
@@ -76,7 +76,7 @@ const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) =>
           />
         </div>
         <p className="text-sm text-gray-500">No constraints will be added if no number is selected</p>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -13,7 +13,7 @@ const CardHeader = ({ className, player, playerPosition }: { className?: string,
     <div className={`relative ${className}`}>
       <div className="absolute left-[23%] top-[7%] uppercase flex flex-row items-end gap-1">
         <h3 className="text-2xl font-semibold text-white ">
-          {player.firstName} {player.lastName}
+          {player.fullName}
         </h3>
         <Divider orientation="vertical" />
         <span className="uppercase font-black text-gray-200">
@@ -39,7 +39,7 @@ const CardHeader = ({ className, player, playerPosition }: { className?: string,
 
       <img
         src={getPlayerHeadshotUrl(player.id)}
-        alt={`${player.firstName} ${player.lastName} Headshot`}
+        alt={`${player.fullName} Headshot`}
         className="absolute top-0 right-0 m-1 w-24 h-24 rounded-full border-2 border-white shadow-md object-cover"
       />
     </div>)

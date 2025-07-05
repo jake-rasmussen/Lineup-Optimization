@@ -110,7 +110,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <ConfirmLineup
             lineup={lineup}
             selectedPlayerSeasons={selectedPlayerSeasons}
-            unassignedPlayers={unassignedPlayerIds.map(entry => `${entry.player.firstName} ${entry.player.lastName}`)}
+            unassignedPlayers={unassignedPlayerIds.map(entry => `${entry.player.fullName}`)}
           />
         )}
       </CardBody>

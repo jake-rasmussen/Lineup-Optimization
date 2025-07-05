@@ -2,6 +2,7 @@ import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDi
 import { PlayerSeason } from "~/data/types";
 import SearchMLBPlayers from "./searchMLBPlayers";
 import { Dispatch, SetStateAction, useState } from "react";
+import toast from "react-hot-toast";
 
 type Props = {
   selectedPlayerSeasons: PlayerSeason[];
@@ -13,12 +14,30 @@ const SearchMLBModal = ({ setSelectedPlayerSeasons }: Props) => {
   const [unsavedPlayerSeasons, setUnsavedPlayerSeasons] = useState<PlayerSeason[]>([]);
 
   const handleSave = () => {
+    for (const ps of unsavedPlayerSeasons) {
+      const season = ps.season;
+      if (season && season.plateAppearances < 100) {
+        toast(
+          <div>
+            <strong className="block font-semibold text-yellow-500">Low Sample Size</strong>
+            <div className="mt-1 text-sm">
+              This player has fewer than 100 plate appearances. Results may be less accurate.
+            </div>
+          </div>,
+          {
+            duration: 7500,
+          }
+        );
+        break;
+      }
+    }
+
     setSelectedPlayerSeasons((prev) => {
       const existingIds = new Set(prev.map((ps) => ps.player.id));
       const newOnes = unsavedPlayerSeasons.filter((ps) => !existingIds.has(ps.player.id));
       return [...prev, ...newOnes];
     });
-    
+
   };
 
   return (

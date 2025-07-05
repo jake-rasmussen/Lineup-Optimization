@@ -1,13 +1,15 @@
 import {
   Button, Table, TableBody, TableCell, TableColumn,
-  TableHeader, TableRow, Select, SelectItem, Spinner
+  TableHeader, TableRow, Select, SelectItem, Spinner,
+  useDisclosure
 } from "@heroui/react";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { formatPosition, formatSeasonLabel, getPlayerSeasonCompositeId, getSeasonSelectKey, isMLBCareer } from "~/utils/helper";
 import PlayerCardModal from "./playerCardModal";
 import { PlayerSeason } from "~/data/types";
-import { Season } from "@prisma/client";
+import { League, Season } from "@prisma/client";
 import { api } from "~/utils/api";
+import toast from "react-hot-toast";
 
 type PropType = {
   selectedPlayerSeasons: PlayerSeason[];
@@ -21,12 +23,12 @@ const PlayerTable = ({
   const { mutateAsync: getPlayerStats } = api.mlb.getPlayerStats.useMutation();
 
   const [playerSeasonsMap, setPlayerSeasonsMap] = useState<Record<string, Season[]>>({});
-  const [loadingPlayerId, setLoadingPlayerId] = useState<string | null>(null);
+  const [isLoadingPlayerId, setIsLoadingPlayerId] = useState<string | null>(null);
 
   const loadStatsIfNeeded = async (playerId: string) => {
     if (playerSeasonsMap[playerId]) return;
 
-    setLoadingPlayerId(playerId);
+    setIsLoadingPlayerId(playerId);
     try {
       const stats = await getPlayerStats({ playerId });
 
@@ -67,7 +69,7 @@ const PlayerTable = ({
     } catch (e) {
       console.error("Failed to load stats for player", playerId, e);
     } finally {
-      setLoadingPlayerId(null);
+      setIsLoadingPlayerId(null);
     }
   };
 
@@ -151,12 +153,12 @@ const PlayerTable = ({
 
           return (
             <TableRow key={playerSeason.compositeId}>
-              <TableCell>{player.firstName} {player.lastName}</TableCell>
+              <TableCell>{player.fullName}</TableCell>
               <TableCell>{formatPosition(player.position)}</TableCell>
               <TableCell><PlayerCardModal player={player} isDisabled={playerSeason.isCustom} /></TableCell>
               <TableCell>
                 <Select
-                  aria-label={`Select season for ${player.firstName} ${player.lastName}`}
+                  aria-label={`Select season for ${player.fullName}`}
                   label="Select Year"
                   placeholder="Choose a season"
                   selectedKeys={selectedKey ? new Set([selectedKey]) : new Set()}
@@ -170,6 +172,20 @@ const PlayerTable = ({
                         player,
                         season
                       };
+
+                      if (season.plateAppearances < 100) {
+                        toast((
+                          <div>
+                            <strong className="block font-semibold text-yellow-500">Low Sample Size</strong>
+                            <div className="mt-1 text-sm">
+                              This player has fewer than 100 plate appearances. Results may be less accurate.
+                            </div>
+                          </div>
+                        ), {
+                          duration: 7500
+                        });
+                      }
+
                       setSelectedPlayerSeasons((prev) =>
                         prev.map(playerSeason =>
                           playerSeason.player.id === player.id ? updated : playerSeason
@@ -177,17 +193,20 @@ const PlayerTable = ({
                       );
                     }
                   }}
-                  isLoading={loadingPlayerId === player.id}
+                  isLoading={isLoadingPlayerId === player.id}
                   renderValue={() => {
                     if (!selectedKey) return "Choose a season";
                     const selectedSeason = playerSeasons.find(
                       (s) => getSeasonSelectKey(s) === selectedKey
                     );
+                    
+                    if (selectedSeason?.league === League.CUSTOM) return "Custom Season"
+
                     return selectedSeason
                       ? formatSeasonLabel(selectedSeason)
                       : "Choose a season";
                   }}
-                  isDisabled={loadingPlayerId === player.id || playerSeason.isCustom}
+                  isDisabled={isLoadingPlayerId === player.id || playerSeason.isCustom}
                   className="min-w-60"
                 >
                   {[...playerSeasons]

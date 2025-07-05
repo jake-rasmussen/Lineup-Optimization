@@ -34,10 +34,17 @@ interface PlayerSplit {
   id: number;
   firstName: string;
   lastName: string;
+  fullName: string;
+  nickName?: string;
   primaryNumber?: string;
   birthDate?: string;
-  primaryPosition?: { abbreviation: string; type: string };
-  batSide?: { code: string };
+  primaryPosition?: {
+    abbreviation: string;
+    type: string;
+  };
+  batSide?: {
+    code: string;
+  };
 }
 
 export const mlbRouter = createTRPCRouter({
@@ -52,23 +59,26 @@ export const mlbRouter = createTRPCRouter({
       }
 
       const data = await res.json();
-      const players = data.people || [];
+      const players: PlayerSplit[] = data.people || [];
 
-      const mappedPlayers = players.map((p: any) => ({
-        id: p.id.toString(),
-        firstName: p.firstName,
-        lastName: p.lastName,
-        position: getPosition(p.primaryPosition?.abbreviation ?? "DH"),
-        battingHand: getBattingHand(p.batSide?.code ?? "R"),
-        jerseyNumber: p.primaryNumber ? parseInt(p.primaryNumber) : undefined,
-        birthday: p.birthDate ? new Date(p.birthDate) : undefined,
-        salary: undefined,
-        seasons: [],
-        lineupEntry: [],
-      }));
+      const mappedPlayers = players
+        .filter(p => p.primaryPosition?.type !== "Pitcher")
+        .map(p => ({
+          id: p.id.toString(),
+          fullName: p.fullName,
+          displayName: p.nickName || p.fullName || `${p.firstName} ${p.lastName}`,
+          position: getPosition(p.primaryPosition?.abbreviation ?? "DH"),
+          battingHand: getBattingHand(p.batSide?.code ?? "R"),
+          jerseyNumber: p.primaryNumber ? parseInt(p.primaryNumber) : undefined,
+          birthday: p.birthDate ? new Date(p.birthDate) : undefined,
+          salary: undefined,
+          seasons: [],
+          lineupEntry: [],
+        }));
 
       return mappedPlayers;
     }),
+
   getPlayerStats: publicProcedure
     .input(z.object({
       playerId: z.string(),
@@ -86,7 +96,6 @@ export const mlbRouter = createTRPCRouter({
       ];
 
       const responses = await Promise.all(levels.map(l => fetch(l.url)));
-
       if (responses.some(res => !res.ok)) {
         throw new Error("Failed to fetch stats");
       }
@@ -125,6 +134,7 @@ export const mlbRouter = createTRPCRouter({
         return b.year - a.year;
       });
     }),
+
   getPlayersByFilter: publicProcedure
     .input(z.object({
       teamId: z.string().optional(),
@@ -136,15 +146,15 @@ export const mlbRouter = createTRPCRouter({
         .filter((p) => p.primaryPosition?.type !== "Pitcher")
         .map((p) => ({
           id: p.id.toString(),
-          firstName: p.firstName,
-          lastName: p.lastName,
+          fullName: p.fullName,
+          displayName: p.fullName || `${p.firstName} ${p.lastName}` || p.nickName || "Unknown Player",
           position: getPosition(p.primaryPosition?.abbreviation ?? "DH"),
           battingHand: getBattingHand(p.batSide?.code ?? "R"),
           jerseyNumber: p.primaryNumber ? parseInt(p.primaryNumber) : null,
           birthday: p.birthDate ? new Date(p.birthDate) : null,
           salary: null,
           seasons: [],
-          lineupEntry: []
+          lineupEntry: [],
         }));
 
       if (input.teamId) {
@@ -165,7 +175,7 @@ export const mlbRouter = createTRPCRouter({
         if (input.search?.trim()) {
           const lowerSearch = input.search.trim().toLowerCase();
           return mapped.filter(p =>
-            `${p.firstName} ${p.lastName}`.toLowerCase().includes(lowerSearch)
+            p.displayName.toLowerCase().includes(lowerSearch)
           );
         }
 
