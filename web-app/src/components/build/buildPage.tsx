@@ -131,7 +131,7 @@ export default function BuildPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center w-full">
+    <main className="flex min-h-screen flex-col items-center w-full overflow-auto min-w-[1000px] bg-black">
       {isLoading ? (
         <div className="flex flex-col gap-20 min-h-screen w-full items-center justify-center">
           <HomeRunAnimation />
@@ -147,7 +147,7 @@ export default function BuildPage() {
               <FinalLineup lineup={lineup} expectedRuns={expectedRuns} />
             </div>
           ) : (
-            <div className="flex w-full min-h-screen justify-center items-center overflow-y-scroll">
+            <div className="flex w-full min-h-screen justify-center items-center">
               <BuildController handleSubmit={handleSubmit} />
             </div>
           )}
