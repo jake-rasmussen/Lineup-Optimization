@@ -20,7 +20,7 @@ const ExpectedRuns = ({ expectedRuns }: { expectedRuns: number }) => {
             {expectedRuns}
           </h2>
           <p className="text-gray-500 text-xs">
-            Runs per game
+            Runs per cycle
           </p>
         </div>
       </CardBody>
