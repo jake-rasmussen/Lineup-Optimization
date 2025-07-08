@@ -56,12 +56,12 @@ const NavDrawer = () => {
 
                 <div className="grow flex flex-col gap-4 justify-start my-20">
                   <Link href="/build">
-                    <Button startContent={<div className="text-2xl">⚾️</div>} className="w-full flex justify-start" size="lg" variant="light">
+                    <Button endContent={<div className="text-2xl w-full flex justify-end">⚾️</div>} className="w-full flex justify-start" size="lg" variant="light">
                       Build Lineup
                     </Button>
                   </Link>
                   <Link href="/saved">
-                    <Button startContent={<div className="text-2xl">📋</div>} className="w-full flex justify-start" size="lg" variant="light">
+                    <Button endContent={<div className="text-2xl w-full flex justify-end">📋</div>} className="w-full flex justify-start" size="lg" variant="light">
                       Saved Lineups
                     </Button>
                   </Link>

@@ -36,12 +36,12 @@ export default function Home() {
       </Head>
       {
         isLoading ? (
-          <div className="flex flex-col gap-4 min-h-screen w-full items-center justify-center">
+          <div className="flex flex-col gap-4 min-h-screen w-screen bg-black items-center justify-center">
             <h2 className="text-xl text-white">Welcome!</h2>
             <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
           </div>
         ) : (
-          <div className="relative min-h-screen flex bg-black flex-col items-center justify-center w-full">
+          <div className="relative flex flex-col items-center justify-center max-w-screen min-h-screen bg-black w-screen overflow-hidden">
             <div className="absolute inset-y-0 left-0 h-full w-px bg-neutral-800/80">
               <div className="absolute top-0 h-40 w-px bg-gradient-to-b from-transparent via-blue-500 to-transparent" />
             </div>
@@ -67,7 +67,7 @@ export default function Home() {
               >
                 <img src="/Field White.svg" alt="Field" style={{ width: "100%", height: "auto" }} className="max-w-40" />
               </motion.div>
-              <h1 className="relative z-10 mx-auto max-w-4xl text-center text-2xl font-bold md:text-4xl lg:text-7xl text-slate-300">
+              <h1 className="relative z-10 mx-auto max-w-xs sm:max-w-lg md:max-w-3xl text-center font-bold text-slate-300 text-xl sm:text-2xl md:text-4xl lg:text-7xl leading-tight">
                 {"Ready to create your winning lineup?"
                   .split(" ")
                   .map((word, index) => (
@@ -80,28 +80,22 @@ export default function Home() {
                         delay: index * 0.1,
                         ease: "easeInOut",
                       }}
-                      className="mr-2 inline-block"
+                      className="mr-1 inline-block"
                     >
                       {word}
                     </motion.span>
                   ))}
               </h1>
+
               <motion.p
-                initial={{
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: 1,
-                }}
-                transition={{
-                  duration: 0.3,
-                  delay: 0.8,
-                }}
-                className="relative z-10 mx-auto max-w-xl py-4 text-center text-lg font-normal text-neutral-400"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.8 }}
+                className="relative z-10 mx-auto mt-4 max-w-sm sm:max-w-md md:max-w-xl text-center text-base sm:text-lg text-neutral-400"
               >
-                Creating the perfect baseball lineup is both an art and a science. Our lineup optimizer helps you select the best
-                combination of players and arrange them in the most effective batting order. By using statistical insights and strategic
-                placement, you can build a lineup that maximizes offensive potential and improves game performance.
+                Creating the perfect baseball lineup is both an art and a science. Our lineup optimizer helps you select the best combination of
+                players and arrange them in the most effective batting order. By using statistical insights and strategic placement, you can build a
+                lineup that maximizes offensive potential and improves game performance.
               </motion.p>
               <motion.div
                 initial={{
@@ -117,11 +111,11 @@ export default function Home() {
                 className="relative z-10 mt-8 flex flex-wrap items-center justify-center gap-4"
               >
                 {signedIn ? (
-                  <Button color="default" size="lg">
-                    <Link href="/build">
+                  <Link href="/build">ƒ
+                    <Button color="default" size="lg">
                       Build Your Lineup
-                    </Link>
-                  </Button>
+                    </Button>
+                  </Link>
                 ) : (
                   <AuthModal />
                 )}
@@ -141,7 +135,7 @@ export default function Home() {
                 }}
                 className="relative z-10 mt-20 rounded-3xl border p-4 shadow-md border-neutral-800 bg-neutral-900"
               >
-                <div className="w-full overflow-hidden rounded-xl border border-gray-700">
+                <div className="w-full rounded-xl border border-gray-700">
                   <RotatingTeamLogos />
                 </div>
               </motion.div>

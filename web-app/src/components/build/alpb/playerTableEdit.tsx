@@ -16,8 +16,6 @@ type PropType = {
 };
 
 const PlayerTableALPB = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: PropType) => {
-  console.log(selectedPlayerSeasons)
-
   return (
     <Table aria-label="Selected Players Table">
       <TableHeader>
