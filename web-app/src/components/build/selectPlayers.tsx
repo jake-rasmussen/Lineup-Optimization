@@ -202,7 +202,7 @@ const SelectMLBPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: P
               <SelectItem key={player.id} textValue={`${player.displayName}`} className="z-0">
                 {(player.fullName || "").replace(/&apos;/g, "'")}
                 {(selectedTeamId && selectedYear)
-                  ? `- ${mlbTeams.find((team) => team.id === parseInt(selectedTeamId))?.name} ${selectedYear}`
+                  ? ` - ${mlbTeams.find((team) => team.id === parseInt(selectedTeamId))?.name} ${selectedYear}`
                   : ""}
               </SelectItem>
             ))}
