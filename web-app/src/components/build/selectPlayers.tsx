@@ -1,4 +1,5 @@
 import {
+  Button,
   Divider, Input, Select, SelectItem,
   useDisclosure
 } from "@heroui/react";
@@ -209,8 +210,23 @@ const SelectMLBPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: P
         </Select>
       )}
 
-      <div className="flex justify-end mt-4 gap-4">
-        <CustomPlayerModal setSelectedPlayerSeasons={setSelectedPlayerSeasons} />
+      <div className="flex mt-4 gap-4">
+        {
+          selectedPlayerSeasons.length > 0 && (
+            <Button
+              onPress={() => {
+                setSelectedPlayerSeasons([]);
+              }}
+            >
+              Clear Lineup
+            </Button>
+          )
+        }
+
+        <div className="grow flex justify-end">
+          <CustomPlayerModal setSelectedPlayerSeasons={setSelectedPlayerSeasons} />
+        </div>
+
       </div>
 
       <SelectSeasonModal
