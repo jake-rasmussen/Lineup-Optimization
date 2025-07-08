@@ -103,14 +103,14 @@ const AuthModal = () => {
   return (
     <>
       <Button color="primary" onPress={onOpen} isLoading={isLoading}>
-        Log in
+        Get Started
       </Button>
 
       <Modal isOpen={isOpen} placement="top-center" onOpenChange={onOpenChange}>
         <ModalContent>
           {(onClose) => (
             <>
-              <ModalHeader className="flex flex-col gap-1">Log in</ModalHeader>
+              <ModalHeader className="flex flex-col gap-1">Get Started</ModalHeader>
               <ModalBody className="flex flex-col gap-4 items-center">
                 <Tabs
                   aria-label="Sign in or Sign up"
