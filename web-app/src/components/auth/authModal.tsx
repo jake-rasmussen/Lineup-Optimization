@@ -87,7 +87,7 @@ const AuthModal = () => {
 
     const targetEmail = forgotEmail || email;
     const { error } = await supabase.auth.resetPasswordForEmail(targetEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "localhost:3000"}/reset-password`,
     });
 
     if (error) {
