@@ -123,13 +123,17 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
             </Checkbox>
           </div>
 
-          <Button onPress={() => {
-            if (!reuseSelections) {
-              localStorage.removeItem("selectedPlayerSeasons");
-            }
-
-            router.reload()
-          }}>Create New Lineup</Button>
+          <Button
+            onPress={() => {
+              if (!reuseSelections) {
+                localStorage.removeItem("selectedPlayerSeasons");
+              }
+              router.reload()
+            }}
+            color="primary"
+          >
+            Create New Lineup
+            </Button>
         </CardFooter>
       </Card>
 

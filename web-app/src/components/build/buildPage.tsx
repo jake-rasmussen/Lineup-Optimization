@@ -137,7 +137,7 @@ export default function BuildPage() {
           <HomeRunAnimation />
           <div className="flex flex-col gap-4 w-full items-center">
             <Progress isIndeterminate aria-label="Loading..." className="max-w-md" size="md" />
-            <h2 className="text-xl text-white">Creating lineup...</h2>
+            <h2 className="text-xl text-white">Optimizing Lineup...</h2>
           </div>
         </div>
       ) : (
