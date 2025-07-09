@@ -45,8 +45,7 @@ model User {
 
 model Player {
     id           String      @id @default(cuid())
-    firstName    String
-    lastName     String
+    fullName     String
     position     Position
     seasons      Season[]
     battingHand  BattingHand

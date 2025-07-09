@@ -35,7 +35,7 @@ const PlayerTable = ({ lineup }: PropType) => {
         {Object.entries(lineup).map(([spot, displayPlayer]) => (
           <TableRow key={spot}>
             <TableCell>{spot}</TableCell>
-            <TableCell className={displayPlayer.isSelected || displayPlayer.isUnassigned ? "font-black" : ""}>{`${displayPlayer.playerSeason.player.firstName} ${displayPlayer.playerSeason.player.lastName}`}</TableCell>
+            <TableCell className={displayPlayer.isSelected || displayPlayer.isUnassigned ? "font-black" : ""}>{`${displayPlayer.playerSeason.player.fullName}`}</TableCell>
             <TableCell>
               <div className="w-fit hover:cursor-pointer">
                 {renderPlayerDesignation(displayPlayer)}

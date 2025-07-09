@@ -25,8 +25,7 @@ export const playerRouter = createTRPCRouter({
             .filter(Boolean)
             .map((term) => ({
               OR: [
-                { firstName: { contains: term, mode: "insensitive" as const } },
-                { lastName: { contains: term, mode: "insensitive" as const } },
+                { fullName: { contains: term, mode: "insensitive" as const } },
               ],
             })),
         }

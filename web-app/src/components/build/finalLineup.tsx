@@ -11,6 +11,7 @@ import {
   ModalFooter,
   Input,
   useDisclosure,
+  Checkbox,
 } from "@heroui/react";
 import { useRouter } from "next/router";
 import toast from "react-hot-toast";
@@ -28,7 +29,9 @@ type PropType = {
 const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
+
   const [lineupName, setLineupName] = useState("");
+  const [reuseSelections, setReuseSelections] = useState(true);
 
   const saveLineup = api.lineup.saveLineup.useMutation({
     onSuccess() {
@@ -53,7 +56,7 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
         return [
           spot,
           {
-            name: `${p.firstName} ${p.lastName}`,
+            name: `${p.fullName}`,
             data: season
               ? {
                 plateAppearances: season.plateAppearances,
@@ -95,23 +98,42 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
 
   return (
     <>
-      <Card className="w-1/2 max-w-xl overflow-visible">
+      <Card className="w-full max-w-2xl overflow-visible p-4">
         <CardHeader>
           <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
         </CardHeader>
         <CardBody className="flex flex-col items-center gap-8 relative overflow-visible">
           <PlayerTable lineup={lineup} />
           {expectedRuns !== undefined && (
-            <div className="absolute right-0 transform translate-x-1/2">
+            <div className="absolute right-0 transform translate-x-1/2 flex flex-col items-center gap-4">
               <ExpectedRuns expectedRuns={expectedRuns} />
+              <Button onPress={onOpen} color="primary" variant="shadow">
+                Save Lineup
+              </Button>
             </div>
           )}
         </CardBody>
-        <CardFooter className="flex gap-4 justify-center">
-          <Button onPress={() => router.reload()}>Back</Button>
-          <Button onPress={onOpen} color="primary">
-            Save
-          </Button>
+        <CardFooter className="flex gap-4">
+          <div className="flex grow">
+            <Checkbox
+              isSelected={reuseSelections}
+              onValueChange={setReuseSelections}
+              defaultChecked>
+              Reuse selections?
+            </Checkbox>
+          </div>
+
+          <Button
+            onPress={() => {
+              if (!reuseSelections) {
+                localStorage.removeItem("selectedPlayerSeasons");
+              }
+              router.reload()
+            }}
+            color="primary"
+          >
+            Create New Lineup
+            </Button>
         </CardFooter>
       </Card>
 

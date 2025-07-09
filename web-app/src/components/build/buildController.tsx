@@ -1,5 +1,14 @@
-import { Button, Card, CardBody, CardFooter, CardHeader, Divider } from "@heroui/react";
-import { useState } from "react";
+"use client";
+
+import {
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  Divider,
+} from "@heroui/react";
+import { useEffect, useState } from "react";
 import AssignLineup from "./assignLineup";
 import ConfirmLineup from "./confirmLineup";
 import SelectPlayersMLB from "./selectPlayers";
@@ -20,19 +29,39 @@ type PropType = {
 const BuildController = ({ handleSubmit }: PropType) => {
   const [step, setStep] = useState(0);
   const [selectedPlayerSeasons, setSelectedPlayerSeasons] = useState<PlayerSeason[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
   const [lineup, setLineup] = useState<Record<number, string | undefined>>(
     Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, undefined]))
   );
 
   const { league } = useLeague();
 
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("selectedPlayerSeasons");
+      if (stored) {
+        setSelectedPlayerSeasons(JSON.parse(stored));
+      }
+    } catch { } finally {
+      setIsLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (isLoaded) {
+        localStorage.setItem("selectedPlayerSeasons", JSON.stringify(selectedPlayerSeasons));
+      }
+    } catch { }
+  }, [selectedPlayerSeasons]);
+
   const nextStep = () => {
-    if (selectedPlayerSeasons.length != 9) {
+    if (selectedPlayerSeasons.length !== 9) {
       toast.error("Please select 9 players");
       return;
-    } else {
-      setStep((prev) => prev + 1);
     }
+    setStep((prev) => prev + 1);
   };
 
   const prevStep = () => setStep((prev) => prev - 1);
@@ -44,9 +73,10 @@ const BuildController = ({ handleSubmit }: PropType) => {
     (selectedPlayerSeason) => !assignedPlayerIds.has(selectedPlayerSeason.compositeId)
   );
 
+  if (!isLoaded) return null;
 
   return (
-    <Card className="h-[90vh] w-full p-4 m-10 max-w-7xl shadow-blue-200 shadow-xl border">
+    <Card className="h-[90vh] w-full p-4 max-w-7xl shadow-blue-200 shadow-xl border">
       {step === 0 && (
         <CardHeader>
           <div>
@@ -82,19 +112,17 @@ const BuildController = ({ handleSubmit }: PropType) => {
       <CardBody className="max-h-[70vh] overflow-y-scroll flex items-center">
         {step === 0 && (
           <>
-            {
-              league === League.MLB ? (
-                <SelectPlayersMLB
-                  selectedPlayerSeasons={selectedPlayerSeasons}
-                  setSelectedPlayerSeasons={setSelectedPlayerSeasons}
-                />
-              ) : (
-                <SelectPlayersALPB
-                  selectedPlayerSeasons={selectedPlayerSeasons}
-                  setSelectedPlayerSeasons={setSelectedPlayerSeasons}
-                />
-              )
-            }
+            {league === League.MLB ? (
+              <SelectPlayersMLB
+                selectedPlayerSeasons={selectedPlayerSeasons}
+                setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+              />
+            ) : (
+              <SelectPlayersALPB
+                selectedPlayerSeasons={selectedPlayerSeasons}
+                setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+              />
+            )}
           </>
         )}
 
@@ -110,7 +138,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <ConfirmLineup
             lineup={lineup}
             selectedPlayerSeasons={selectedPlayerSeasons}
-            unassignedPlayers={unassignedPlayerIds.map(entry => `${entry.player.firstName} ${entry.player.lastName}`)}
+            unassignedPlayers={unassignedPlayerIds.map((entry) => `${entry.player.fullName}`)}
           />
         )}
       </CardBody>
@@ -135,9 +163,9 @@ const BuildController = ({ handleSubmit }: PropType) => {
         )}
         {step === 2 && (
           <Button
-            onPress={() =>
-              handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons)
-            }
+            onPress={() => {
+              handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons);
+            }}
             color="primary"
           >
             Submit
