@@ -8,7 +8,7 @@ import {
   CardHeader,
   Divider,
 } from "@heroui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AssignLineup from "./assignLineup";
 import ConfirmLineup from "./confirmLineup";
 import SelectPlayersMLB from "./selectPlayers";
@@ -22,7 +22,8 @@ type PropType = {
   handleSubmit: (
     lineup: Record<number, string | undefined>,
     unassignedPlayerSeasons: PlayerSeason[],
-    selectedPlayerSeasons: PlayerSeason[]
+    selectedPlayerSeasons: PlayerSeason[],
+    maxConsecutiveHandedness: [number, number]
   ) => void;
 };
 
@@ -34,6 +35,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
   const [lineup, setLineup] = useState<Record<number, string | undefined>>(
     Object.fromEntries(Array.from({ length: 9 }, (_, i) => [i + 1, undefined]))
   );
+  const [maxConsecutiveHandedness, setMaxConsecutiveHandedness] = useState<[number, number]>([0, 0]);
 
   const { league } = useLeague();
 
@@ -55,6 +57,49 @@ const BuildController = ({ handleSubmit }: PropType) => {
       }
     } catch { }
   }, [selectedPlayerSeasons]);
+
+  const isConstraintImpossible = useMemo(() => {
+    if (step !== 1) return false;
+
+    const hands = selectedPlayerSeasons
+      .map((ps) => ps.player?.battingHand)
+      .filter((h): h is "LEFT" | "RIGHT" => h === "LEFT" || h === "RIGHT");
+
+    if (hands.length !== 9) return false;
+
+    const dfs = (
+      remaining: string[],
+      last: string | null,
+      leftStreak: number,
+      rightStreak: number
+    ): boolean => {
+      if (remaining.length === 0) return true;
+
+      for (let i = 0; i < remaining.length; i++) {
+        const hand = remaining[i];
+        const rest = [...remaining.slice(0, i), ...remaining.slice(i + 1)];
+
+        if (hand === "LEFT") {
+          if (last === "LEFT" && leftStreak + 1 > maxConsecutiveHandedness[0]) continue;
+          if (dfs(rest, "LEFT", last === "LEFT" ? leftStreak + 1 : 1, 0)) return true;
+        } else if (hand === "RIGHT") {
+          if (last === "RIGHT" && rightStreak + 1 > maxConsecutiveHandedness[1]) continue;
+          if (dfs(rest, "RIGHT", 0, last === "RIGHT" ? rightStreak + 1 : 1)) return true;
+        }
+      }
+
+      return false;
+    };
+
+    const canSatisfy = dfs(hands, null, 0, 0);
+    return !canSatisfy;
+  }, [step, selectedPlayerSeasons, maxConsecutiveHandedness]);
+
+  useEffect(() => {
+    if (step === 1 && isConstraintImpossible) {
+      toast.error("Impossible handedness constraint");
+    }
+  }, [step, isConstraintImpossible]);
 
   const nextStep = () => {
     if (selectedPlayerSeasons.length !== 9) {
@@ -93,7 +138,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <div>
             <h3>Add Constraints</h3>
             <p className="text-gray-500 font-normal text-sm">
-              Place add constraints to create your desired batting order.
+              Place handedness constraints to control lineup flow.
             </p>
           </div>
         </CardHeader>
@@ -130,6 +175,8 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <AssignLineup
             lineup={lineup}
             setLineup={setLineup}
+            maxConsecutiveHandedness={maxConsecutiveHandedness}
+            setMaxConsecutiveHandedness={setMaxConsecutiveHandedness}
             selectedPlayerSeasons={selectedPlayerSeasons}
           />
         )}
@@ -156,7 +203,11 @@ const BuildController = ({ handleSubmit }: PropType) => {
           <Button
             color="primary"
             onPress={nextStep}
-            isDisabled={selectedPlayerSeasons.some((playerSeason) => !playerSeason.season)}
+            isDisabled={
+              selectedPlayerSeasons.length !== 9 ||
+              selectedPlayerSeasons.some((ps) => !ps.season) ||
+              isConstraintImpossible
+            }
           >
             Next
           </Button>
@@ -164,7 +215,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
         {step === 2 && (
           <Button
             onPress={() => {
-              handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons);
+              handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons, maxConsecutiveHandedness);
             }}
             color="primary"
           >
@@ -174,9 +225,7 @@ const BuildController = ({ handleSubmit }: PropType) => {
 
         {step === 0 && selectedPlayerSeasons.length > 0 && (
           <div className="grow flex justify-end items-center">
-            {
-                `Selected Players: ${selectedPlayerSeasons.length}/9`
-            }
+            {`Selected Players: ${selectedPlayerSeasons.length}/9`}
           </div>
         )}
       </CardFooter>
