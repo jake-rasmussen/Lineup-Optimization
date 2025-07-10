@@ -171,6 +171,14 @@ const BuildController = ({ handleSubmit }: PropType) => {
             Submit
           </Button>
         )}
+
+        {step === 0 && selectedPlayerSeasons.length > 0 && (
+          <div className="grow flex justify-end items-center">
+            {
+                `Selected Players: ${selectedPlayerSeasons.length}/9`
+            }
+          </div>
+        )}
       </CardFooter>
     </Card>
   );
