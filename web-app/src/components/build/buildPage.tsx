@@ -94,8 +94,8 @@ export default function BuildPage() {
       const json_input = {
         ...selectedLineup,
         ...Object.fromEntries(unassignedPlayers.map((p, i) => [i + 10, p])),
-        max_consecutive_left: maxConsecutiveHandedness[0] || 0,
-        max_consecutive_right: maxConsecutiveHandedness[1] || 0,
+        // max_consecutive_left: maxConsecutiveHandedness[0] || 0,
+        // max_consecutive_right: maxConsecutiveHandedness[1] || 0,
       };
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/optimize-lineup`, {
