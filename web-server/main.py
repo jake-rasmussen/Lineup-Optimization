@@ -34,25 +34,39 @@ class PlayerData(BaseModel):
     data: Optional[Dict[str, float]]
 
 class LineupRequest(BaseModel):
-    json_input: Dict[str, Optional[PlayerData]]
-    method: Optional[str] = "exhaustive"
-    max_iterations: Optional[int] = 1000
+    json_input: Dict[str, Any]
+    method: str
+    max_iterations: int
 
 @app.post("/optimize-lineup")
 async def optimize_lineup(request: LineupRequest):
     logging.debug(f"Received request with data: {request}")
     try:
+        raw_input = request.json_input
+
+        # Extract only the player entries (batting positions 1–18)
         players_json = {
-            key: {"name": value.name, "data": value.data} if value else None 
-            for key, value in request.json_input.items()
+            key: {
+                "name": value["name"],
+                "data": value["data"],
+                "batting_hand": value.get("batting_hand", "RIGHT"),
+            }
+            for key, value in raw_input.items()
+            if key.isdigit() and value is not None and "name" in value and "data" in value
         }
 
+        # Append handedness constraints to players_json (expected by optimizer)
+        players_json["max_consecutive_left"] = raw_input.get("max_consecutive_left", 0)
+        players_json["max_consecutive_right"] = raw_input.get("max_consecutive_right", 0)
+
         result = parse_and_optimize_lineup_fast(
-            players_json,
+            json_input=players_json,
             method=request.method,
             max_iterations=request.max_iterations
         )
+
         return result
+
     except Exception as e:
         logging.error(f"Error processing lineup optimization: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
