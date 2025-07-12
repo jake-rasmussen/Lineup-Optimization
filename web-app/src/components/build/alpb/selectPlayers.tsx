@@ -5,11 +5,10 @@ import { useEffect, useState } from "react";
 import type { Selection } from "@heroui/react";
 import toast from "react-hot-toast";
 import { api } from "~/utils/api";
-import { PlayerSeason } from "~/data/types";
+import { PlayerSeason, Season } from "~/data/types";
 import CustomPlayerModal from "../customPlayerModal";
 import SearchMLBModal from "../searchMLBModal";
 import PlayerTableALPB from "./playerTableEdit";
-import { Season } from "@prisma/client";
 import { getPlayerSeasonString } from "~/utils/helper";
 
 type PropType = {

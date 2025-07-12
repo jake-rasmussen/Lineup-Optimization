@@ -1,4 +1,4 @@
-import { League } from "@prisma/client";
+import { League } from "~/data/types";
 import type { GetServerSidePropsContext } from "next";
 import { useEffect } from "react";
 import { createClient } from "utils/supabase/server-props";

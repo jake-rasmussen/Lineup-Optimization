@@ -1,14 +1,13 @@
 "use client";
 
 import {
-  Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Table, TableBody, TableCell, TableColumn,
+  Button, Table, TableBody, TableCell, TableColumn,
   TableHeader, TableRow
 } from "@heroui/react";
 import { Dispatch, SetStateAction } from "react";
 import { formatPosition, getPlayerSeasonString } from "~/utils/helper";
-import { PlayerSeason } from "~/data/types";
+import { PlayerSeason, Season } from "~/data/types";
 import PlayerSeasonDropdown from "../playerSeasonDropdown";
-import { Season } from "@prisma/client";
 
 type PropType = {
   selectedPlayerSeasons: PlayerSeason[];

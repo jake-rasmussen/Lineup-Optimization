@@ -1,6 +1,5 @@
 import { Dropdown, DropdownTrigger, Button, DropdownMenu, DropdownItem, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/react";
-import { Season } from "@prisma/client";
-import { PlayerSeason } from "~/data/types";
+import { Season } from "~/data/types";
 
 type PropType = {
   season: Season;

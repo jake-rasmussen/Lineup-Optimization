@@ -1,6 +1,6 @@
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure } from "@heroui/react";
 import PlayerCard from "./playerCard";
-import { Player } from "@prisma/client";
+import { Player } from "~/data/types";
 
 type PropType = {
   player: Player;

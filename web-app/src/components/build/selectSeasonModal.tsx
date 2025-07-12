@@ -10,8 +10,8 @@ import {
   Spinner,
 } from "@heroui/react";
 import { useEffect, useState } from "react";
+import { Player, Season } from "~/data/types";
 import { getSeasonSelectKey, formatSeasonLabel } from "~/utils/helper";
-import type { Player, Season } from "@prisma/client";
 
 type Props = {
   isOpen: boolean;

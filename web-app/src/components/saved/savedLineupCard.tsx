@@ -19,9 +19,9 @@ import {
 } from "@heroui/react";
 import { useState } from "react";
 import { api } from "~/utils/api";
-import { Season } from "@prisma/client";
 import toast from "react-hot-toast";
 import PlayerSeasonDropdown from "../build/playerSeasonDropdown";
+import { Season } from "~/data/types";
 
 type PlayerData = {
   name: string;
