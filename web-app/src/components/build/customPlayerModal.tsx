@@ -13,10 +13,9 @@ import {
   Divider
 } from "@heroui/react";
 import { useState } from "react";
-import { Position, BattingHand, Player, League, Season } from "@prisma/client";
 import type { Dispatch, SetStateAction } from "react";
 import { formatBattingHand, formatPosition } from "~/utils/helper";
-import { PlayerSeason } from "~/data/types";
+import { PlayerSeason, Position, BattingHand, Player, League, Season } from "~/data/types";
 import toast from "react-hot-toast";
 
 type Props = {

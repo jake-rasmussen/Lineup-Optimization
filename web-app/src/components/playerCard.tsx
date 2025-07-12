@@ -1,6 +1,6 @@
 import { Card, CardBody, Divider, Spinner } from "@heroui/react";
-import { Player, Position, Season } from "@prisma/client";
 import { useEffect, useState } from "react";
+import { Season, Player, Position } from "~/data/types";
 import { api } from "~/utils/api";
 import { formatPosition, getSeasonSelectKey } from "~/utils/helper";
 

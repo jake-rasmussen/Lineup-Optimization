@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { League } from "@prisma/client";
+import { League } from "~/data/types";
 
 type LeagueContextType = {
   league: League;

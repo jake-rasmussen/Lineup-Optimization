@@ -1,8 +1,9 @@
-import { League } from "@prisma/client";
+
 import { useLeague } from "~/context/leagueContext";
+import { League } from "~/data/types";
 import { getTeamName } from "~/utils/helper";
 
-const TeamLogo = ({ teamId, className }: { teamId: string; className?: string  }) => {
+const TeamLogo = ({ teamId, className }: { teamId: string; className?: string }) => {
   const { league } = useLeague();
 
   return (

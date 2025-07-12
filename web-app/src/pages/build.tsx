@@ -1,9 +1,9 @@
-import { League } from "@prisma/client";
 import type { GetServerSidePropsContext } from "next";
 import { useEffect } from "react";
 import { createClient } from "utils/supabase/server-props";
 import BuildPage from "~/components/build/buildPage";
 import { useLeague } from "~/context/leagueContext";
+import { League } from "~/data/types";
 
 export default function Build() {
   const { setLeague } = useLeague();

@@ -1,4 +1,4 @@
-import { BattingHand, League, Player, Position, Season } from "@prisma/client";
+import { BattingHand, League, Player, Position, Season } from "~/data/types";
 import { alpbTeamMap, mlbTeamNameMap } from "~/data/teams";
 import { PlayerSeason } from "~/data/types";
 

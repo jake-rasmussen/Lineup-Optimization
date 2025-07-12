@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { League, Season } from "~/data/types";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { League } from "@prisma/client";
 import { getBattingHand, getPosition } from "~/utils/helper";
 
 type StatSplit = {
@@ -197,4 +197,86 @@ export const mlbRouter = createTRPCRouter({
 
       return [];
     }),
+
+  getPlayerSplitStats: publicProcedure
+    .input(z.object({
+      playerId: z.string(),
+      seasonYear: z.number(),
+    }))
+    .mutation(async ({ input }) => {
+      const { playerId, seasonYear } = input;
+      const url = `https://statsapi.mlb.com/api/v1/people?personIds=${playerId}&season=${seasonYear}&hydrate=stats(group=[hitting],type=[statSplits],sitCodes=[vr,vl])`;
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error("Failed to fetch split stats");
+      }
+
+      const data = await res.json();
+      const splits = data.people?.[0]?.stats?.[0]?.splits ?? [];
+
+      const formatSplitToSeason = (split: any): Season | null => {
+        if (!split?.stat || !split?.season) return null;
+        const s = split.stat;
+
+        return {
+          id: `${playerId}-${split.season}-${split.split.code}`,
+          year: parseInt(split.season),
+          plateAppearances: s.plateAppearances ?? 0,
+          runs: s.runs ?? 0,
+          hits: s.hits ?? 0,
+          singles: (s.hits ?? 0) - ((s.doubles ?? 0) + (s.triples ?? 0) + (s.homeRuns ?? 0)),
+          doubles: s.doubles ?? 0,
+          triples: s.triples ?? 0,
+          homeruns: s.homeRuns ?? 0,
+          walks: s.baseOnBalls ?? 0,
+          hitByPitch: s.hitByPitch ?? 0,
+          intentionalWalks: s.intentionalWalks ?? 0,
+          playerId,
+          teamId: split.team?.id?.toString() ?? "",
+          teamName: split.team?.name ?? "Unknown Team",
+          league: League.MLB,
+        };
+      };
+
+      const vsLeft = formatSplitToSeason(splits.find((s: any) => s.split?.code === "vl"));
+      const vsRight = formatSplitToSeason(splits.find((s: any) => s.split?.code === "vr"));
+
+      // Fetch overall separately
+      const overallUrl = `https://statsapi.mlb.com/api/v1/people/${playerId}?season=${seasonYear}&hydrate=stats(group=[hitting],type=[season])`;
+      const overallRes = await fetch(overallUrl);
+      let overall: Season | null = null;
+
+      if (overallRes.ok) {
+        const overallData = await overallRes.json();
+        const s = overallData.people?.[0]?.stats?.[0]?.splits?.[0];
+        if (s?.stat && s?.season) {
+          overall = {
+            id: `${playerId}-${s.season}-overall`,
+            year: parseInt(s.season),
+            plateAppearances: s.stat.plateAppearances ?? 0,
+            runs: s.stat.runs ?? 0,
+            hits: s.stat.hits ?? 0,
+            singles: (s.stat.hits ?? 0) - ((s.stat.doubles ?? 0) + (s.stat.triples ?? 0) + (s.stat.homeRuns ?? 0)),
+            doubles: s.stat.doubles ?? 0,
+            triples: s.stat.triples ?? 0,
+            homeruns: s.stat.homeRuns ?? 0,
+            walks: s.stat.baseOnBalls ?? 0,
+            hitByPitch: s.stat.hitByPitch ?? 0,
+            intentionalWalks: s.stat.intentionalWalks ?? 0,
+            playerId,
+            teamId: s.team?.id?.toString() ?? "",
+            teamName: s.team?.name ?? "Unknown Team",
+            league: League.MLB,
+          };
+        }
+      }
+
+      return {
+        vsLeft,
+        vsRight,
+        overall,
+      };
+    }),
+
 });

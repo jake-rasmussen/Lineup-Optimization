@@ -10,69 +10,69 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-enum Position {
-    PITCHER
-    CATCHER
-    FIRST_BASE
-    SECOND_BASE
-    THIRD_BASE
-    LEFT_FIELD
-    CENTER_FIELD
-    RIGHT_FIELD
-    SHORTSTOP
-    DESIGNATED_HITTER
-}
+// enum Position {
+//     PITCHER
+//     CATCHER
+//     FIRST_BASE
+//     SECOND_BASE
+//     THIRD_BASE
+//     LEFT_FIELD
+//     CENTER_FIELD
+//     RIGHT_FIELD
+//     SHORTSTOP
+//     DESIGNATED_HITTER
+// }
 
-enum BattingHand {
-    LEFT
-    RIGHT
-    SWITCH
-}
+// enum BattingHand {
+//     LEFT
+//     RIGHT
+//     SWITCH
+// }
 
-enum League {
-    MLB
-    ALPB
-    AAA
-    AA
-    A
-    CUSTOM
-}
+// enum League {
+//     MLB
+//     ALPB
+//     AAA
+//     AA
+//     A
+//     CUSTOM
+// }
 
 model User {
     email       String        @id @unique
     savedLineup SavedLineup[]
 }
 
-model Player {
-    id           String      @id @default(cuid())
-    fullName     String
-    position     Position
-    seasons      Season[]
-    battingHand  BattingHand
-    jerseyNumber Int?
-    salary       Int?
-    birthday     DateTime?
-}
+// model Player {
+//     id           String      @id @default(cuid())
+//     fullName     String
+//     position     Position
+//     seasons      Season[]
+//     battingHand  BattingHand
+//     jerseyNumber Int?
+//     salary       Int?
+//     birthday     DateTime?
+// }
 
-model Season {
-    id               String  @id @default(cuid())
-    year             Int?
-    plateAppearances Int
-    runs             Int
-    hits             Int
-    singles          Int
-    doubles          Int
-    triples          Int
-    homeruns         Int
-    walks            Int
-    hitByPitch       Int
-    intentionalWalks Int
-    player           Player? @relation(fields: [playerId], references: [id])
-    playerId         String?
-    teamId           String?
-    teamName         String
-    league           League
-}
+// model Season {
+//     id               String  @id @default(cuid())
+//     year             Int?
+//     plateAppearances Int
+//     runs             Int
+//     hits             Int
+//     singles          Int
+//     doubles          Int
+//     triples          Int
+//     homeruns         Int
+//     walks            Int
+//     hitByPitch       Int
+//     intentionalWalks Int
+//     player           Player? @relation(fields: [playerId], references: [id])
+//     playerId         String?
+//     teamId           String?
+//     teamName         String
+//     league           League
+// }
 
 model SavedLineup {
     id           String   @id @default(cuid())

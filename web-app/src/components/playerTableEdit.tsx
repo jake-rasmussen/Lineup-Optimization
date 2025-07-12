@@ -7,7 +7,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { formatPosition, formatSeasonLabel, getPlayerSeasonCompositeId, getSeasonSelectKey, isMLBCareer } from "~/utils/helper";
 import PlayerCardModal from "./playerCardModal";
 import { PlayerSeason } from "~/data/types";
-import { League, Season } from "@prisma/client";
+import { Season, League } from "~/data/types";
 import { api } from "~/utils/api";
 import toast from "react-hot-toast";
 
@@ -199,7 +199,7 @@ const PlayerTable = ({
                     const selectedSeason = playerSeasons.find(
                       (s) => getSeasonSelectKey(s) === selectedKey
                     );
-                    
+
                     if (selectedSeason?.league === League.CUSTOM) return "Custom Season"
 
                     return selectedSeason

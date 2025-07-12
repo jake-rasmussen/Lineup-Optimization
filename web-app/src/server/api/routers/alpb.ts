@@ -1,6 +1,6 @@
 import { z } from "zod";
+import { League, Season } from "~/data/types";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { League, Season } from "@prisma/client";
 import { getBattingHand, getPosition } from "~/utils/helper";
 
 const BASE_URL = "https://api.pointstreak.com/baseball";

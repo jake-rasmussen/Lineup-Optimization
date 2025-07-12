@@ -15,8 +15,7 @@ import {
   Spinner,
 } from "@heroui/react";
 import { api } from "~/utils/api";
-import { Player, Position, Season } from "@prisma/client";
-import { PlayerSeason } from "~/data/types";
+import { Player, PlayerSeason, Position, Season } from "~/data/types";
 
 type PropType = {
   setUnsavedPlayerSeasons: Dispatch<SetStateAction<PlayerSeason[]>>;
