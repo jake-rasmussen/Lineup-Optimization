@@ -11,6 +11,7 @@ export default function BuildPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [lineup, setLineup] = useState<Record<number, DisplayLineupPlayer>>();
   const [expectedRuns, setExpectedRuns] = useState<number>();
+  const [pitcherHandedness, setPitcherHandedness] = useState<"LEFT" | "RIGHT" | null>(null);
 
   const handleSubmit = async (
     lineupInput: Record<number, string | undefined>,
@@ -20,6 +21,7 @@ export default function BuildPage() {
     pitcherHandedness: "LEFT" | "RIGHT" | null
   ) => {
     setIsLoading(true);
+    setPitcherHandedness(pitcherHandedness);
 
     try {
       const selectedLineup: Record<number, { name: string; data: any } | null> = {};
@@ -162,7 +164,7 @@ export default function BuildPage() {
         <>
           {lineup ? (
             <div className="flex flex-col gap-12 items-center w-full min-h-screen justify-center">
-              <FinalLineup lineup={lineup} expectedRuns={expectedRuns} />
+              <FinalLineup lineup={lineup} expectedRuns={expectedRuns} pitcherHandedness={pitcherHandedness} />
             </div>
           ) : (
             <div className="w-full h-full overflow-x-auto px-4 flex items-center">

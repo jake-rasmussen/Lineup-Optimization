@@ -96,7 +96,7 @@ export const getPlayerSeasonString = (playerSeason?: PlayerSeason) => {
     if (playerSeason.season?.year === 9999) {
       return `${playerSeason.player.fullName.replace(/&apos;/g, "'")}`;
     } else {
-      return `${playerSeason.player.fullName} ${isCustom ? "- Custom Player" : `${season?.teamName} ${season?.year ? season?.year : ""}`}`;
+      return `${playerSeason.player.fullName} ${isCustom ? "- Custom Player" : ` - ${season?.teamName} ${season?.year ? season?.year : ""}`}`;
     }
   }
 }

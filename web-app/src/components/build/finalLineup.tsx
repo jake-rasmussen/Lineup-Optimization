@@ -24,9 +24,10 @@ import ResultsTable from "../resultsTable";
 type PropType = {
   lineup: Record<number, DisplayLineupPlayer>;
   expectedRuns?: number;
+  pitcherHandedness: "LEFT" | "RIGHT" | null;
 };
 
-const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
+const FinalLineup = ({ lineup, expectedRuns, pitcherHandedness }: PropType) => {
   const router = useRouter();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -100,7 +101,9 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
     <>
       <Card className="w-full max-w-2xl overflow-visible p-4">
         <CardHeader>
-          <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
+          <h1 className="text-4xl font-bold text-center">{
+            `Generated Lineup ${pitcherHandedness === "LEFT" ? "vs. Lefty" : pitcherHandedness === "RIGHT" ? "vs. Righty" : ""}`
+          }</h1>
         </CardHeader>
         <CardBody className="flex flex-col items-center gap-8 relative overflow-visible">
           <ResultsTable lineup={lineup} />
@@ -133,7 +136,7 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
             color="primary"
           >
             Create New Lineup
-            </Button>
+          </Button>
         </CardFooter>
       </Card>
 

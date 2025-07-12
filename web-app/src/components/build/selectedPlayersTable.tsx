@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownItem,
   Button,
+  Tooltip,
 } from "@heroui/react";
 import { PlayerSeason } from "~/data/types";
 
@@ -73,44 +74,71 @@ const SelectedPlayersTable = ({ selectedPlayerSeasons, pitcherHandedness }: Prop
     );
   };
 
-  return (
-    <Table aria-label="Selected Player Seasons Table" className="max-w-6xl">
-      <TableHeader>
-        <TableColumn>PLAYER</TableColumn>
-        <TableColumn>YEAR</TableColumn>
-        <TableColumn>STATS USED</TableColumn>
-      </TableHeader>
-      <TableBody>
-        {selectedPlayerSeasons.map((ps) => {
-          const statLabel = getStatType(ps);
+  const hasLowSamplePlayer = selectedPlayerSeasons.some((ps) => {
+    const s = getDisplayedSeason(ps);
+    return s?.plateAppearances !== undefined && s.plateAppearances < 100;
+  });
 
-          return (
-            <TableRow key={ps.compositeId}>
-              <TableCell className="font-medium">{ps.player.fullName}</TableCell>
-              <TableCell>{getDisplayedSeason(ps)?.year ?? "N/A"}</TableCell>
-              <TableCell>
-                <Dropdown placement="bottom-end">
-                  <DropdownTrigger>
-                    <Button variant="flat" size="sm">
-                      View Stats
-                    </Button>
-                  </DropdownTrigger>
-                  <DropdownMenu
-                    aria-label="Stat Details"
-                    className="w-fit min-w-[520px] px-2 py-1"
-                    itemClasses={{ base: "pointer-events-none p-0" }}
-                  >
-                    <DropdownItem key="statsTable" className="w-full">
-                      {renderStatsTable(ps)}
-                    </DropdownItem>
-                  </DropdownMenu>
-                </Dropdown>
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+  return (
+    <div className="space-y-4">
+      <Table aria-label="Selected Player Seasons Table" className="max-w-6xl">
+        <TableHeader>
+          <TableColumn>PLAYER</TableColumn>
+          <TableColumn>YEAR</TableColumn>
+          <TableColumn>STATS USED</TableColumn>
+        </TableHeader>
+        <TableBody>
+          {selectedPlayerSeasons.map((ps) => {
+            const statLabel = getStatType(ps);
+            const season = getDisplayedSeason(ps);
+            const isLowSample =
+              season?.plateAppearances !== undefined && season.plateAppearances < 100;
+
+            return (
+              <TableRow key={ps.compositeId}>
+                <TableCell className="font-medium relative">
+                  {ps.player.fullName}
+                </TableCell>
+                <TableCell>{season?.year ?? "N/A"}</TableCell>
+                <TableCell className="flex flex-row">
+                  <Dropdown placement="bottom-end">
+                    <DropdownTrigger>
+                      <Button variant="flat" size="sm" className="min-w-28">
+                        View Stats
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Stat Details"
+                      className="w-fit min-w-[520px] px-2 py-1"
+                      itemClasses={{ base: "pointer-events-none p-0" }}
+                    >
+                      <DropdownItem key="statsTable" className="w-full">
+                        {renderStatsTable(ps)}
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
+
+                  {isLowSample && (
+                    <div className="flex w-full justify-end items-center hover:cursor-pointer">
+                      <Tooltip content="Fewer than 100 plate appearances" placement="left" showArrow color="warning">
+                        <span className="text-yellow-600 inline-block leading-none text-xl">⚠️</span>
+                      </Tooltip>
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+
+      {hasLowSamplePlayer && (
+        <div className="text-sm text-gray-500 px-1 flex gap-4 items-center">
+          <div className="text-xl">⚠️</div>
+          <p>Players with fewer than 100 plate appearances may have unreliable stats.</p>
+        </div>
+      )}
+    </div>
   );
 };
 
