@@ -6,12 +6,10 @@ import { getPlayerSeasonString } from "~/utils/helper";
 type PropType = {
   lineup: Record<number, string | undefined>;
   setLineup: Dispatch<SetStateAction<Record<number, string | undefined>>>;
-  maxConsecutiveHandedness: number[];
-  setMaxConsecutiveHandedness: Dispatch<SetStateAction<[number, number]>>;
   selectedPlayerSeasons: PlayerSeason[];
 };
 
-const AssignLineup = ({ lineup, setLineup, maxConsecutiveHandedness, setMaxConsecutiveHandedness, selectedPlayerSeasons }: PropType) => {
+const AssignLineup = ({ lineup, setLineup, selectedPlayerSeasons }: PropType) => {
   const lineupSpots = Array.from({ length: 9 }, (_, i) => i + 1);
 
   const handleLineupChange = (spot: number, compositeId: string) => {
@@ -61,24 +59,24 @@ const AssignLineup = ({ lineup, setLineup, maxConsecutiveHandedness, setMaxConse
           </Select>
         ))}
       </div>
-      <Divider />
+      {/* <Divider />
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-4">
           <NumberInput
-            label="Enter max amount of consecutive lefties"
-            minValue={1}
+            label="Enter max amount of consecutive righties"
+            minValue={0}
             maxValue={9}
-            onValueChange={(e) => setMaxConsecutiveHandedness([e, maxConsecutiveHandedness[1]!])}
+            isDisabled
           />
           <NumberInput
-            label="Enter max amount of consecutive righties"
-            minValue={1}
+            label="Enter max amount of consecutive lefties"
+            minValue={0}
             maxValue={9}
-            onValueChange={(e) => setMaxConsecutiveHandedness([maxConsecutiveHandedness[0]!, e])}
+            isDisabled
           />
         </div>
         <p className="text-sm text-gray-500">No constraints will be added if no number is selected</p>
-      </div>
+      </div> */}
     </div>
   );
 };

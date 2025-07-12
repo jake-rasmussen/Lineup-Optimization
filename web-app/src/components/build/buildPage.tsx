@@ -11,10 +11,9 @@ export default function BuildPage() {
   const [expectedRuns, setExpectedRuns] = useState<number>();
 
   const handleSubmit = async (
-    lineupInput: Record<number, string | undefined>,
+    lineupInput: Record<number, string | undefined>, // batting spot -> compositeId
     unassignedPlayerSeasons: PlayerSeason[],
-    selectedPlayerSeasons: PlayerSeason[],
-    maxConsecutiveHandedness: [number, number]
+    selectedPlayerSeasons: PlayerSeason[]
   ) => {
     setIsLoading(true);
 
@@ -78,9 +77,7 @@ export default function BuildPage() {
 
       const json_input = {
         ...selectedLineup,
-        ...Object.fromEntries(unassignedPlayers.map((p, i) => [i + 10, p])),
-        max_consecutive_left: maxConsecutiveHandedness[0],
-        max_consecutive_right: maxConsecutiveHandedness[1],
+        ...Object.fromEntries(unassignedPlayers.map((p, i) => [i + 10, p]))
       };
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/optimize-lineup`, {
