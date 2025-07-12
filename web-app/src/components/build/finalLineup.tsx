@@ -102,7 +102,7 @@ const FinalLineup = ({ lineup, expectedRuns, pitcherHandedness }: PropType) => {
       <Card className="w-full max-w-2xl overflow-visible p-4">
         <CardHeader>
           <h1 className="text-4xl font-bold text-center">{
-            `Generated Lineup ${pitcherHandedness === "LEFT" ? "vs. Lefty" : pitcherHandedness === "RIGHT" ? "vs. Righty" : ""}`
+            `Generated Lineup ${pitcherHandedness === "LEFT" ? "vs. LHP" : pitcherHandedness === "RIGHT" ? "vs. RHP" : ""}`
           }</h1>
         </CardHeader>
         <CardBody className="flex flex-col items-center gap-8 relative overflow-visible">
