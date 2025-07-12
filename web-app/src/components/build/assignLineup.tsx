@@ -61,7 +61,7 @@ const AssignLineup = ({ lineup, setLineup, maxConsecutiveHandedness, setMaxConse
           </Select>
         ))}
       </div>
-      <Divider />
+      {/* <Divider />
       <div className="flex flex-col gap-2">
         <div className="flex flex-row gap-4">
           <NumberInput
@@ -78,7 +78,7 @@ const AssignLineup = ({ lineup, setLineup, maxConsecutiveHandedness, setMaxConse
           />
         </div>
         <p className="text-sm text-gray-500">No constraints will be added if no number is selected</p>
-      </div>
+      </div> */}
     </div>
   );
 };

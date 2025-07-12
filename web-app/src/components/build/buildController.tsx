@@ -25,7 +25,8 @@ type PropType = {
     lineup: Record<number, string | undefined>,
     unassignedPlayerSeasons: PlayerSeason[],
     selectedPlayerSeasons: PlayerSeason[],
-    maxConsecutiveHandedness: [number, number]
+    maxConsecutiveHandedness: [number, number],
+    pitcherHandedness: "LEFT" | "RIGHT" | null
   ) => void;
 };
 
@@ -90,7 +91,6 @@ const BuildController = ({ handleSubmit }: PropType) => {
           const leftLimit = maxConsecutiveHandedness[0];
           if (
             last === "LEFT" &&
-            leftLimit !== undefined &&
             leftLimit > 0 &&
             leftStreak + 1 > leftLimit
           )
@@ -100,7 +100,6 @@ const BuildController = ({ handleSubmit }: PropType) => {
           const rightLimit = maxConsecutiveHandedness[1];
           if (
             last === "RIGHT" &&
-            rightLimit !== undefined &&
             rightLimit > 0 &&
             rightStreak + 1 > rightLimit
           )
@@ -131,7 +130,9 @@ const BuildController = ({ handleSubmit }: PropType) => {
     setStep((prev) => prev + 1);
   };
 
-  const prevStep = () => setStep((prev) => prev - 1);
+  const prevStep = () => {
+    setStep((prev) => prev - 1);
+  };
 
   const assignedPlayerIds = new Set(
     Object.values(lineup).filter((id): id is string => typeof id === "string")
@@ -145,65 +146,38 @@ const BuildController = ({ handleSubmit }: PropType) => {
   return (
     <>
       <Card className="h-[80vh] w-full p-4 max-w-7xl shadow-blue-200 shadow-xl border">
-        {step === 0 && (
-          <CardHeader>
-            <div>
-              <h3>Select Players</h3>
-              <p className="text-gray-500 font-normal text-sm">
-                Use the dropdown and search bar below to pick players based on team, year and name.
-                Please select 9 player's season.
-              </p>
-            </div>
-          </CardHeader>
-        )}
-        {step === 1 && (
-          <CardHeader>
-            <div>
-              <h3>Add Constraints</h3>
-              <p className="text-gray-500 font-normal text-sm">
-                Place handedness constraints to control lineup flow.
-              </p>
-            </div>
-          </CardHeader>
-        )}
-        {step === 2 && (
-          <CardHeader>
-            <div>
-              <h3>Select Pitcher Handedness</h3>
-              <p className="text-gray-500 font-normal text-sm">
-                Choose the pitcher’s handedness to simulate matchup splits.
-              </p>
-            </div>
-          </CardHeader>
-        )}
-        {step === 3 && (
-          <CardHeader>
-            <div>
-              <h3>Review & Submit</h3>
-              <p className="text-gray-500 font-normal text-sm">
-                Review your lineup and click submit when ready.
-              </p>
-            </div>
-          </CardHeader>
-        )}
+        <CardHeader>
+          <div>
+            <h3>
+              {["Select Players", "Add Constraints", "Select Pitcher Handedness", "Review & Submit"][step]}
+            </h3>
+            <p className="text-gray-500 font-normal text-sm">
+              {
+                [
+                  "Use the dropdown and search bar below to pick players based on team, year and name. Please select 9 player's season.",
+                  "Place handedness constraints to control lineup flow.",
+                  "Choose the pitcher’s handedness to simulate matchup splits.",
+                  "Review your lineup and click submit when ready."
+                ][step]
+              }
+            </p>
+          </div>
+        </CardHeader>
         <Divider />
         <CardBody className="max-h-[70vh] overflow-y-scroll flex items-center">
           {step === 0 && (
-            <>
-              {league === League.MLB ? (
-                <SelectPlayersMLB
-                  selectedPlayerSeasons={selectedPlayerSeasons}
-                  setSelectedPlayerSeasons={setSelectedPlayerSeasons}
-                />
-              ) : (
-                <SelectPlayersALPB
-                  selectedPlayerSeasons={selectedPlayerSeasons}
-                  setSelectedPlayerSeasons={setSelectedPlayerSeasons}
-                />
-              )}
-            </>
+            league === League.MLB ? (
+              <SelectPlayersMLB
+                selectedPlayerSeasons={selectedPlayerSeasons}
+                setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+              />
+            ) : (
+              <SelectPlayersALPB
+                selectedPlayerSeasons={selectedPlayerSeasons}
+                setSelectedPlayerSeasons={setSelectedPlayerSeasons}
+              />
+            )
           )}
-
           {step === 1 && (
             <AssignLineup
               lineup={lineup}
@@ -213,7 +187,6 @@ const BuildController = ({ handleSubmit }: PropType) => {
               selectedPlayerSeasons={selectedPlayerSeasons}
             />
           )}
-
           {step === 2 && (
             <SelectPitcherHandedness
               pitcherHandedness={pitcherHandedness}
@@ -222,7 +195,6 @@ const BuildController = ({ handleSubmit }: PropType) => {
               setSelectedPlayerSeasons={setSelectedPlayerSeasons}
             />
           )}
-
           {step === 3 && (
             <ConfirmLineup
               lineup={lineup}
@@ -256,9 +228,9 @@ const BuildController = ({ handleSubmit }: PropType) => {
           )}
           {step === 3 && (
             <Button
-              onPress={() => {
-                handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons, maxConsecutiveHandedness);
-              }}
+              onPress={() =>
+                handleSubmit(lineup, unassignedPlayerIds, selectedPlayerSeasons, maxConsecutiveHandedness, pitcherHandedness)
+              }
               color="primary"
             >
               Submit
@@ -272,7 +244,6 @@ const BuildController = ({ handleSubmit }: PropType) => {
         </CardFooter>
       </Card>
 
-      {/* Breadcrumbs below the card */}
       <Breadcrumbs className="mt-8 mx-auto w-full flex items-center justify-center dark">
         {["Select Players", "Add Constraints", "Pitcher Handedness", "Review & Submit"].map((label, index) => (
           <BreadcrumbItem

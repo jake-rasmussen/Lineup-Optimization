@@ -1,3 +1,5 @@
+"use client";
+
 import { Progress } from "@heroui/react";
 import { useState } from "react";
 import BuildController from "~/components/build/buildController";
@@ -14,7 +16,8 @@ export default function BuildPage() {
     lineupInput: Record<number, string | undefined>,
     unassignedPlayerSeasons: PlayerSeason[],
     selectedPlayerSeasons: PlayerSeason[],
-    maxConsecutiveHandedness: [number, number]
+    maxConsecutiveHandedness: [number, number],
+    pitcherHandedness: "LEFT" | "RIGHT" | null
   ) => {
     setIsLoading(true);
 
@@ -24,6 +27,14 @@ export default function BuildPage() {
       const assignedCompositeIds = new Set(
         Object.values(lineupInput).filter((id): id is string => !!id)
       );
+
+      // Helper to choose the appropriate season stats
+      const getSelectedStats = (ps: PlayerSeason) => {
+        if (pitcherHandedness && ps.seasonSplits) {
+          return pitcherHandedness === "LEFT" ? ps.seasonSplits.vsLeft : ps.seasonSplits.vsRight;
+        }
+        return ps.season;
+      };
 
       // Assigned players
       for (const [spot, compositeId] of Object.entries(lineupInput)) {
@@ -38,18 +49,19 @@ export default function BuildPage() {
           continue;
         }
 
+        const stats = getSelectedStats(playerSeason);
         selectedLineup[parseInt(spot)] = {
           name: `${playerSeason.player.fullName}`,
-          data: playerSeason.season
+          data: stats
             ? {
-              pa: playerSeason.season.plateAppearances,
-              h: playerSeason.season.hits,
-              "2b": playerSeason.season.doubles,
-              "3b": playerSeason.season.triples,
-              hr: playerSeason.season.homeruns,
-              bb: playerSeason.season.walks,
-              hbp: playerSeason.season.hitByPitch,
-              ibb: playerSeason.season.intentionalWalks,
+              pa: stats.plateAppearances,
+              h: stats.hits,
+              "2b": stats.doubles,
+              "3b": stats.triples,
+              hr: stats.homeruns,
+              bb: stats.walks,
+              hbp: stats.hitByPitch,
+              ibb: stats.intentionalWalks,
               sb: 0,
             }
             : null,
@@ -59,28 +71,31 @@ export default function BuildPage() {
       // Unassigned players
       const unassignedPlayers = unassignedPlayerSeasons
         .filter((ps) => !assignedCompositeIds.has(ps.compositeId))
-        .map((playerSeason) => ({
-          name: `${playerSeason.player.fullName}`,
-          data: playerSeason.season
-            ? {
-              pa: playerSeason.season.plateAppearances,
-              h: playerSeason.season.hits,
-              "2b": playerSeason.season.doubles,
-              "3b": playerSeason.season.triples,
-              hr: playerSeason.season.homeruns,
-              bb: playerSeason.season.walks,
-              hbp: playerSeason.season.hitByPitch,
-              ibb: playerSeason.season.intentionalWalks,
-              sb: 0,
-            }
-            : null,
-        }));
+        .map((playerSeason) => {
+          const stats = getSelectedStats(playerSeason);
+          return {
+            name: `${playerSeason.player.fullName}`,
+            data: stats
+              ? {
+                pa: stats.plateAppearances,
+                h: stats.hits,
+                "2b": stats.doubles,
+                "3b": stats.triples,
+                hr: stats.homeruns,
+                bb: stats.walks,
+                hbp: stats.hitByPitch,
+                ibb: stats.intentionalWalks,
+                sb: 0,
+              }
+              : null,
+          };
+        });
 
       const json_input = {
         ...selectedLineup,
         ...Object.fromEntries(unassignedPlayers.map((p, i) => [i + 10, p])),
-        // max_consecutive_left: maxConsecutiveHandedness[0] || 0,
-        // max_consecutive_right: maxConsecutiveHandedness[1] || 0,
+        max_consecutive_left: maxConsecutiveHandedness[0] || 0,
+        max_consecutive_right: maxConsecutiveHandedness[1] || 0,
       };
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/optimize-lineup`, {

@@ -65,6 +65,10 @@ export type PlayerSeason = {
   compositeId: string;
   player: Player;
   season?: Season;
+  seasonSplits?: {
+    vsLeft: Season;
+    vsRight: Season;
+  };
   isCustom?: boolean;
 };
 

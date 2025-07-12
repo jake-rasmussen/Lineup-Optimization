@@ -108,5 +108,7 @@ export function isMLBCareer(season: Season): boolean {
 export function formatSeasonLabel(season: Season): string {
   return isMLBCareer(season)
     ? "MLB Career"
-    : `${season.year} (${season.teamName})`;
+    : season.id.endsWith("vr") ? `${season.year} (${season.teamName}) vs. R` 
+    : season.id.endsWith("vl") ? `${season.year} (${season.teamName}) vs. L` 
+    : `${season.year} (${season.teamName})` ;
 }

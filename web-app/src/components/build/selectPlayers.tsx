@@ -8,9 +8,8 @@ import type { Selection } from "@heroui/react";
 import toast from "react-hot-toast";
 import { mlbTeamNameMap } from "~/data/teams";
 import { api } from "~/utils/api";
-import { Player, Season } from "@prisma/client";
-import { PlayerSeason } from "~/data/types";
-import PlayerTable from "~/components/playerTableEdit";
+import { Player, PlayerSeason, Season } from "~/data/types";
+import PlayerTableEdit from "~/components/playerTableEdit";
 import CustomPlayerModal from "./customPlayerModal";
 import { getPlayerSeasonCompositeId } from "~/utils/helper";
 import SelectSeasonModal from "./selectSeasonModal";
@@ -265,7 +264,7 @@ const SelectMLBPlayers = ({ selectedPlayerSeasons, setSelectedPlayerSeasons }: P
 
       <Divider />
 
-      <PlayerTable
+      <PlayerTableEdit
         selectedPlayerSeasons={selectedPlayerSeasons}
         setSelectedPlayerSeasons={setSelectedPlayerSeasons}
       />

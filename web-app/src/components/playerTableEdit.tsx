@@ -16,7 +16,7 @@ type PropType = {
   setSelectedPlayerSeasons: Dispatch<SetStateAction<PlayerSeason[]>>;
 };
 
-const PlayerTable = ({
+const PlayerTableEdit = ({
   selectedPlayerSeasons,
   setSelectedPlayerSeasons
 }: PropType) => {
@@ -197,7 +197,7 @@ const PlayerTable = ({
                   renderValue={() => {
                     if (!selectedKey) return "Choose a season";
                     const selectedSeason = playerSeasons.find(
-                      (s) => getSeasonSelectKey(s) === selectedKey
+                      (s) => getSeasonSelectKey(s).includes(selectedKey)
                     );
 
                     if (selectedSeason?.league === League.CUSTOM) return "Custom Season"
@@ -246,4 +246,4 @@ const PlayerTable = ({
   );
 };
 
-export default PlayerTable;
+export default PlayerTableEdit;

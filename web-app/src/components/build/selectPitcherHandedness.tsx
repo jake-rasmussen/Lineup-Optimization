@@ -45,46 +45,39 @@ const SelectPitcherHandedness = ({
 
   const handleHandednessChange = async (handedness: PitcherHandednessOption) => {
     setPitcherHandedness(handedness);
-    const oldPlayerseasons = selectedPlayerSeasons;
-
-    setSelectedPlayerSeasons([]);
     setIsLoading(true);
-
+    
     try {
       const updatedSeasons: PlayerSeason[] = await Promise.all(
         selectedPlayerSeasons.map(async (ps): Promise<PlayerSeason> => {
           const { player, season } = ps;
           if (!season) return ps;
 
-          const { vsLeft, vsRight, overall } = await getPlayerSplitStats({
+          const splitStats = await getPlayerSplitStats({
             playerId: player.id,
             seasonYear: season.year!,
           });
-          const splitStats = handedness === "LEFT"
-            ? vsLeft
-            : handedness === "RIGHT"
-              ? vsRight
-              : overall;
 
-          if (!splitStats) return ps;
+          const vsLeft: Season = { ...season, ...splitStats.vsLeft };
+          const vsRight: Season = { ...season, ...splitStats.vsRight };
 
-          const selectedSplitSeason: Season = {
-            ...season,
-            ...splitStats,
-          };
+          const seasonSplits = { vsLeft, vsRight };
+
+          let updated: Season | undefined = undefined;
+          if (handedness === "LEFT") updated = vsLeft;
+          else if (handedness === "RIGHT") updated = vsRight;
+          else updated = season; // fallback to original
 
           return {
             ...ps,
-            season: selectedSplitSeason,
-            compositeId: getPlayerSeasonCompositeId(player, selectedSplitSeason),
+            seasonSplits,
+            compositeId: getPlayerSeasonCompositeId(player, updated),
           };
         })
       );
 
-      console.log(updatedSeasons)
       setSelectedPlayerSeasons(updatedSeasons);
     } catch (err) {
-      setSelectedPlayerSeasons(oldPlayerseasons)
       console.error("Failed to update splits", err);
     } finally {
       setIsLoading(false);
@@ -94,7 +87,7 @@ const SelectPitcherHandedness = ({
   return (
     <div className="relative w-full h-full">
       {isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-lg h-full">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 rounded-lg h-full">
           <Spinner size="lg" color="primary" />
         </div>
       )}
@@ -102,7 +95,9 @@ const SelectPitcherHandedness = ({
       <div className="flex flex-col items-start w-full gap-6">
         <div className="space-y-1">
           <p className="text-sm text-gray-500">
-            Simulate matchup-based stats by selecting the pitcher’s handedness. This will use each player’s split stats vs. left- or right-handed pitchers. If “No Constraint” is selected, full-season (combined) stats will be used instead.
+            Simulate matchup-based stats by selecting the pitcher’s handedness. This will use each
+            player’s split stats vs. left- or right-handed pitchers. If “No Constraint” is selected,
+            full-season (combined) stats will be used instead.
           </p>
         </div>
 
