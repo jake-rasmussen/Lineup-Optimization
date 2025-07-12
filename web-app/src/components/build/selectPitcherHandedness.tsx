@@ -1,10 +1,11 @@
 "use client";
 
-import { RadioGroup, Radio, cn, Spinner } from "@heroui/react";
+import { RadioGroup, Radio, cn, Spinner, Divider } from "@heroui/react";
 import { Dispatch, SetStateAction, useState } from "react";
 import { api } from "~/utils/api";
 import { PlayerSeason, Season } from "~/data/types";
 import { getPlayerSeasonCompositeId } from "~/utils/helper";
+import SelectedPlayersTable from "./selectedPlayersTable";
 
 type PitcherHandednessOption = "LEFT" | "RIGHT" | null;
 
@@ -46,7 +47,7 @@ const SelectPitcherHandedness = ({
   const handleHandednessChange = async (handedness: PitcherHandednessOption) => {
     setPitcherHandedness(handedness);
     setIsLoading(true);
-    
+
     try {
       const updatedSeasons: PlayerSeason[] = await Promise.all(
         selectedPlayerSeasons.map(async (ps): Promise<PlayerSeason> => {
@@ -92,34 +93,41 @@ const SelectPitcherHandedness = ({
         </div>
       )}
 
-      <div className="flex flex-col items-start w-full gap-6">
-        <div className="space-y-1">
-          <p className="text-sm text-gray-500">
-            Simulate matchup-based stats by selecting the pitcher’s handedness. This will use each
-            player’s split stats vs. left- or right-handed pitchers. If “No Constraint” is selected,
-            full-season (combined) stats will be used instead.
-          </p>
+      <div className="flex flex-row gap-8">
+        <div className="flex flex-col items-start w-full gap-6">
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500">
+              Simulate matchup-based stats by selecting the pitcher’s handedness. This will use each
+              player’s split stats vs. left- or right-handed pitchers. If “No Constraint” is selected,
+              full-season (combined) stats will be used instead.
+            </p>
+          </div>
+
+          <RadioGroup
+            label={<p className="text-black">Pitcher Handedness</p>}
+            value={pitcherHandedness ?? "NONE"}
+            onValueChange={(val) => {
+              const newVal = val === "NONE" ? null : (val as PitcherHandednessOption);
+              handleHandednessChange(newVal);
+            }}
+          >
+            <CustomRadio description="Use player stats vs. left-handed pitchers" value="LEFT">
+              Left-Handed Pitcher
+            </CustomRadio>
+            <CustomRadio description="Use player stats vs. right-handed pitchers" value="RIGHT">
+              Right-Handed Pitcher
+            </CustomRadio>
+            <CustomRadio description="Use full-season stats with no split applied" value="NONE">
+              No Constraint
+            </CustomRadio>
+          </RadioGroup>
         </div>
 
-        <RadioGroup
-          label={<p className="text-black">Pitcher Handedness</p>}
-          value={pitcherHandedness ?? "NONE"}
-          onValueChange={(val) => {
-            const newVal = val === "NONE" ? null : (val as PitcherHandednessOption);
-            handleHandednessChange(newVal);
-          }}
-        >
-          <CustomRadio description="Use player stats vs. left-handed pitchers" value="LEFT">
-            Left-Handed Pitcher
-          </CustomRadio>
-          <CustomRadio description="Use player stats vs. right-handed pitchers" value="RIGHT">
-            Right-Handed Pitcher
-          </CustomRadio>
-          <CustomRadio description="Use full-season stats with no split applied" value="NONE">
-            No Constraint
-          </CustomRadio>
-        </RadioGroup>
+        <div className="w-full m-4">
+          <SelectedPlayersTable selectedPlayerSeasons={selectedPlayerSeasons} pitcherHandedness={pitcherHandedness} />
+        </div>
       </div>
+
     </div>
   );
 };

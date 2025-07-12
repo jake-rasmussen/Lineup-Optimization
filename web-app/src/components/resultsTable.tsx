@@ -5,7 +5,7 @@ type PropType = {
   lineup: Record<number, DisplayLineupPlayer>;
 };
 
-const PlayerTable = ({ lineup }: PropType) => {
+const ResultsTable = ({ lineup }: PropType) => {
   const renderPlayerDesignation = (displayPlayer: DisplayLineupPlayer) => {
     if (displayPlayer.isSelected) {
       return (
@@ -48,4 +48,4 @@ const PlayerTable = ({ lineup }: PropType) => {
   );
 };
 
-export default PlayerTable;
+export default ResultsTable;

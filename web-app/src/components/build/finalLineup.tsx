@@ -19,7 +19,7 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import ExpectedRuns from "./expectedRuns";
 import { DisplayLineupPlayer } from "~/data/types";
-import PlayerTable from "../playerTableView";
+import ResultsTable from "../resultsTable";
 
 type PropType = {
   lineup: Record<number, DisplayLineupPlayer>;
@@ -103,7 +103,7 @@ const FinalLineup = ({ lineup, expectedRuns }: PropType) => {
           <h1 className="text-4xl font-bold text-center">Generated Lineup</h1>
         </CardHeader>
         <CardBody className="flex flex-col items-center gap-8 relative overflow-visible">
-          <PlayerTable lineup={lineup} />
+          <ResultsTable lineup={lineup} />
           {expectedRuns !== undefined && (
             <div className="absolute right-0 transform translate-x-1/2 flex flex-col items-center gap-4">
               <ExpectedRuns expectedRuns={expectedRuns} />
