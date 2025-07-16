@@ -222,7 +222,7 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
     
     return {
         "lineup": {str(i + 1): player for i, player in enumerate(best_lineup_names)},
-        "expectedRuns": round(expected_runs_per_cycle, 4)
+        "expectedRuns": round(expected_runs_per_cycle, 2)
     }
 
 def _verify_lineup_constraints(lineup: List[str], 
