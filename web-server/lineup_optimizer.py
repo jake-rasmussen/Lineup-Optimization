@@ -214,9 +214,6 @@ def parse_and_optimize_lineup_fast(json_input: Dict[str, Any],
     # Apply scaling to get interpretable expected runs per cycle
     expected_runs_per_cycle = best_score * cycle_scaling_factor
     
-    # Ensure the value is within reasonable bounds (0.5 to 3.0 runs per cycle)
-    expected_runs_per_cycle = max(0.5, min(3.0, expected_runs_per_cycle))
-    
     result["expected runs"] = round(expected_runs_per_cycle, 4)
     
     print(f"\nBest lineup: {best_lineup_names}")
