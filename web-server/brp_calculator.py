@@ -301,7 +301,7 @@ def calculate_brp(stats1, stats2, stats3, stats4):
     L32 = L29 * C11                              # DoubleB+
     L33 = L29 * (1 - C11)                        # DoubleB-
     L34 = L29 * C18                              # DoubleC+
-    L35 = L29 * (1 - C19)                        # DoubleC-
+    L35 = L29 * (1 - C18)                        # DoubleC-
     O29 = D3b / Dpa                              # Triple rate
     R29 = Dhr / Dpa                              # Home run rate
     U29 = (Dbb + Dhbp + Dibb) / Dpa              # Walk rate
